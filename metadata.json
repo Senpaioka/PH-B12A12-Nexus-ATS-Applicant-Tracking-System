@@ -1,0 +1,5 @@
+{
+  "name": "Nexus ATS",
+  "description": "A modern, full-stack ready Applicant Tracking System frontend featuring candidate pipelines, job management, and analytics dashboard.",
+  "requestFramePermissions": []
+}
