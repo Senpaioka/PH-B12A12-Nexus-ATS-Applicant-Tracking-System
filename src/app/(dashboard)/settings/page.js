@@ -34,22 +34,22 @@ export default function SettingsPage() {
             <Separator className="my-6" />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-                <div className="flex flex-col md:flex-row gap-8">
-                    <aside className="-mx-4 md:w-1/5 md:mx-0">
-                        <TabsList className="flex flex-col h-auto items-stretch bg-transparent space-y-1 p-0">
-                            <TabsTrigger value="general" className="justify-start px-4 py-2 h-9 data-[state=active]:bg-muted data-[state=active]:shadow-none">
+                <div className="flex flex-col lg:flex-row gap-8">
+                    <aside className="lg:w-1/4">
+                        <TabsList className="flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible h-auto items-stretch bg-transparent space-x-2 lg:space-x-0 lg:space-y-1 p-0 pb-2 lg:pb-0 scrollbar-hide">
+                            <TabsTrigger value="general" className="whitespace-nowrap flex-shrink-0 justify-start px-4 py-2 h-9 data-[state=active]:bg-muted data-[state=active]:shadow-none">
                                 <User className="mr-2 h-4 w-4" />
                                 General
                             </TabsTrigger>
-                            <TabsTrigger value="notifications" className="justify-start px-4 py-2 h-9 data-[state=active]:bg-muted data-[state=active]:shadow-none">
+                            <TabsTrigger value="notifications" className="whitespace-nowrap flex-shrink-0 justify-start px-4 py-2 h-9 data-[state=active]:bg-muted data-[state=active]:shadow-none">
                                 <Bell className="mr-2 h-4 w-4" />
                                 Notifications
                             </TabsTrigger>
-                            <TabsTrigger value="team" className="justify-start px-4 py-2 h-9 data-[state=active]:bg-muted data-[state=active]:shadow-none">
+                            <TabsTrigger value="team" className="whitespace-nowrap flex-shrink-0 justify-start px-4 py-2 h-9 data-[state=active]:bg-muted data-[state=active]:shadow-none">
                                 <Users className="mr-2 h-4 w-4" />
                                 Team
                             </TabsTrigger>
-                            <TabsTrigger value="security" className="justify-start px-4 py-2 h-9 data-[state=active]:bg-muted data-[state=active]:shadow-none">
+                            <TabsTrigger value="security" className="whitespace-nowrap flex-shrink-0 justify-start px-4 py-2 h-9 data-[state=active]:bg-muted data-[state=active]:shadow-none">
                                 <Shield className="mr-2 h-4 w-4" />
                                 Security
                             </TabsTrigger>
@@ -73,7 +73,7 @@ export default function SettingsPage() {
                                         </Button>
                                     </div>
                                     <Separator />
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="firstName">First name</Label>
                                             <Input id="firstName" defaultValue="Alex" />
@@ -165,17 +165,17 @@ export default function SettingsPage() {
                                             { name: "Sarah Smith", role: "Recruiter", email: "sarah@nexus.co", status: "Active" },
                                             { name: "Mike Johnson", role: "Interviewer", email: "mike@nexus.co", status: "Invited" },
                                         ].map((member, i) => (
-                                            <div key={i} className="flex items-center justify-between">
+                                            <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                 <div className="flex items-center space-x-4">
-                                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
+                                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium flex-shrink-0">
                                                         {member.name.split(' ').map(n => n[0]).join('')}
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm font-medium leading-none">{member.name}</p>
-                                                        <p className="text-sm text-muted-foreground">{member.email}</p>
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-medium leading-none truncate">{member.name}</p>
+                                                        <p className="text-sm text-muted-foreground truncate">{member.email}</p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center space-x-2">
+                                                <div className="flex items-center justify-between sm:justify-end space-x-2">
                                                     <span className="text-xs text-muted-foreground mr-2">{member.role}</span>
                                                     <Button variant="outline" size="sm">Edit</Button>
                                                 </div>

@@ -46,17 +46,17 @@ export default function EditJobPage() {
 
     return (
         <div className="space-y-6 max-w-3xl mx-auto pb-10">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                    <Button variant="ghost" size="icon" className="shrink-0" onClick={() => router.back()}>
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Edit Job</h2>
-                        <p className="text-muted-foreground">Update job details and requirements.</p>
+                        <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Edit Job</h2>
+                        <p className="text-muted-foreground text-sm">Update job details and requirements.</p>
                     </div>
                 </div>
-                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                <Button variant="destructive" size="sm" className="w-full sm:w-auto" onClick={handleDelete}>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete Job
                 </Button>
@@ -68,7 +68,7 @@ export default function EditJobPage() {
                         <CardTitle>Job Details</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="title">Job Title</Label>
                                 <Input id="title" defaultValue={job.title} required />
@@ -86,7 +86,7 @@ export default function EditJobPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="type">Employment Type</Label>
                                 <Select id="type" defaultValue={job.type.toLowerCase()} required>

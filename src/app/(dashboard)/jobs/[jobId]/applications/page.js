@@ -31,49 +31,49 @@ export default function JobApplicationsPage() {
     return (
         <div className="space-y-6 pb-10">
             {/* Header */}
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => router.push('/jobs')}>
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+                <Button variant="ghost" size="icon" className="shrink-0" onClick={() => router.push('/jobs')}>
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">{job.title}</h2>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <span className="flex items-center gap-1 text-sm">
+                <div className="min-w-0">
+                    <h2 className="text-2xl font-bold tracking-tight truncate">{job.title}</h2>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground text-sm mt-1">
+                        <span className="flex items-center gap-1">
                             <Briefcase className="h-3 w-3" />
                             {job.department}
                         </span>
-                        <span className="text-sm">•</span>
-                        <span className="text-sm">{job.location}</span>
-                        <span className="text-sm">•</span>
-                        <span className="text-sm">Posted {new Date(job.postedAt).toLocaleDateString()}</span>
+                        <span>•</span>
+                        <span>{job.location}</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span>Posted {new Date(job.postedAt).toLocaleDateString()}</span>
                     </div>
                 </div>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card>
                     <CardContent className="p-4 flex flex-col gap-1">
-                        <span className="text-sm text-muted-foreground">Total Applicants</span>
-                        <span className="text-2xl font-bold">{jobCandidates.length}</span>
+                        <span className="text-[10px] sm:text-xs uppercase tracking-wider text-muted-foreground font-semibold">Total</span>
+                        <span className="text-xl sm:text-2xl font-bold">{jobCandidates.length}</span>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="p-4 flex flex-col gap-1">
-                        <span className="text-sm text-muted-foreground">In Pipeline</span>
-                        <span className="text-2xl font-bold">{jobCandidates.filter(c => ['Screening', 'Interview'].includes(c.status)).length}</span>
+                        <span className="text-[10px] sm:text-xs uppercase tracking-wider text-muted-foreground font-semibold">Pipeline</span>
+                        <span className="text-xl sm:text-2xl font-bold">{jobCandidates.filter(c => ['Screening', 'Interview'].includes(c.status)).length}</span>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="p-4 flex flex-col gap-1">
-                        <span className="text-sm text-muted-foreground">Offer Sent</span>
-                        <span className="text-2xl font-bold text-green-600">{jobCandidates.filter(c => c.status === 'Offer').length}</span>
+                        <span className="text-[10px] sm:text-xs uppercase tracking-wider text-muted-foreground font-semibold">Offered</span>
+                        <span className="text-xl sm:text-2xl font-bold text-green-600">{jobCandidates.filter(c => c.status === 'Offer').length}</span>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="p-4 flex flex-col gap-1">
-                        <span className="text-sm text-muted-foreground">Rejected</span>
-                        <span className="text-2xl font-bold text-muted-foreground">{jobCandidates.filter(c => ['Rejected'].includes(c.status)).length}</span>
+                        <span className="text-[10px] sm:text-xs uppercase tracking-wider text-muted-foreground font-semibold">Rejected</span>
+                        <span className="text-xl sm:text-2xl font-bold text-muted-foreground">{jobCandidates.filter(c => ['Rejected'].includes(c.status)).length}</span>
                     </CardContent>
                 </Card>
             </div>

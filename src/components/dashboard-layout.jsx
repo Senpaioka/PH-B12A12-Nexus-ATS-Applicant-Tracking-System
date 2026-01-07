@@ -89,15 +89,15 @@ export default function DashboardLayout({ children }) {
             {/* Mobile Header & Sidebar Overlay */}
             <div className={`fixed inset-0 bg-black/50 z-40 md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`} onClick={() => setIsMobileMenuOpen(false)} />
 
-            <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-200 ease-in-out md:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r shadow-xl transform transition-transform duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="p-6 border-b flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
                             <Briefcase className="h-5 w-5 text-primary-foreground" />
                         </div>
-                        <span className="font-bold text-xl">Nexus</span>
+                        <span className="font-bold text-xl tracking-tight">Nexus ATS</span>
                     </div>
-                    <button onClick={() => setIsMobileMenuOpen(false)}>
+                    <button className="p-2 -mr-2 rounded-md hover:bg-muted" onClick={() => setIsMobileMenuOpen(false)}>
                         <X className="h-5 w-5 text-muted-foreground" />
                     </button>
                 </div>
@@ -106,7 +106,8 @@ export default function DashboardLayout({ children }) {
                     <SidebarItem icon={Users} label="Candidates" path="/candidates" active={isActive('/candidates')} onClick={() => setIsMobileMenuOpen(false)} />
                     <SidebarItem icon={Briefcase} label="Jobs" path="/jobs" active={isActive('/jobs')} onClick={() => setIsMobileMenuOpen(false)} />
                     <SidebarItem icon={Calendar} label="Schedule" path="/schedule" active={isActive('/schedule')} onClick={() => setIsMobileMenuOpen(false)} />
-                    <div className="mt-4 pt-4 border-t">
+                    <SidebarItem icon={Settings} label="Settings" path="/settings" active={isActive('/settings')} onClick={() => setIsMobileMenuOpen(false)} />
+                    <div className="mt-8 pt-4 border-t">
                         <button
                             onClick={handleLogout}
                             className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
@@ -121,27 +122,31 @@ export default function DashboardLayout({ children }) {
             {/* Main Content */}
             <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Top Header */}
-                <header className="h-16 border-b bg-card flex items-center justify-between px-6 sticky top-0 z-30">
-                    <div className="flex items-center gap-4">
-                        <button className="md:hidden" onClick={() => setIsMobileMenuOpen(true)}>
+                <header className="h-16 border-b bg-card flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
+                    <div className="flex items-center gap-2 md:gap-4 flex-1">
+                        <button className="md:hidden p-2 -ml-2 rounded-md hover:bg-muted" onClick={() => setIsMobileMenuOpen(true)}>
                             <Menu className="h-5 w-5 text-muted-foreground" />
                         </button>
-                        <div className="relative hidden sm:block">
+                        <div className="relative flex-1 max-w-md hidden sm:block">
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <input
                                 type="text"
                                 placeholder="Search candidates, jobs..."
-                                className="pl-9 pr-4 py-2 w-64 bg-muted/50 border-none rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                className="pl-9 pr-4 py-2 w-full bg-muted/50 border-none rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                             />
                         </div>
+                        {/* Mobile Search Icon - visible only on phones */}
+                        <button className="sm:hidden p-2 rounded-full hover:bg-muted">
+                            <Search className="h-5 w-5 text-muted-foreground" />
+                        </button>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 md:gap-4">
                         <button className="relative p-2 rounded-full hover:bg-muted transition-colors">
                             <Bell className="h-5 w-5 text-muted-foreground" />
                             <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 border-2 border-background"></span>
                         </button>
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 border-2 border-background"></div>
+                        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 border-2 border-background ring-offset-2 ring-offset-background hover:ring-2 ring-primary/20 cursor-pointer"></div>
                     </div>
                 </header>
 

@@ -37,7 +37,7 @@ export default function CreateJobPage() {
                         <CardTitle>Job Details</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="title">Job Title</Label>
                                 <Input id="title" placeholder="e.g. Senior Product Designer" required />
@@ -55,7 +55,7 @@ export default function CreateJobPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="type">Employment Type</Label>
                                 <Select id="type" required>

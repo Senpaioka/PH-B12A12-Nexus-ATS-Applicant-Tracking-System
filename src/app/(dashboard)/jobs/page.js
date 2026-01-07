@@ -60,14 +60,14 @@ export default function JobsPage() {
                 ) : (
                     filteredJobs.map(job => (
                         <Card key={job.id} className="hover:shadow-md transition-shadow">
-                            <CardContent className="p-6">
-                                <div className="flex items-start justify-between">
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-3">
-                                            <h3 className="font-semibold text-lg hover:text-primary cursor-pointer" onClick={() => router.push(`/jobs/${job.id}/edit`)}>{job.title}</h3>
+                            <CardContent className="p-4 sm:p-6">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="space-y-1 flex-1 min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                                            <h3 className="font-semibold text-base sm:text-lg hover:text-primary cursor-pointer truncate" onClick={() => router.push(`/jobs/${job.id}/edit`)}>{job.title}</h3>
                                             <StatusBadge status={job.status} />
                                         </div>
-                                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-muted-foreground">
                                             <span className="flex items-center gap-1">
                                                 <MapPin className="h-3 w-3" />
                                                 {job.location}
@@ -81,13 +81,13 @@ export default function JobsPage() {
                                             </span>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/jobs/${job.id}/edit`)}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => router.push(`/jobs/${job.id}/edit`)}>
                                         <MoreHorizontal className="h-4 w-4" />
                                     </Button>
                                 </div>
 
-                                <div className="mt-6 flex items-center justify-between pt-4 border-t">
-                                    <div className="flex items-center gap-6">
+                                <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t gap-4">
+                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                                         <div className="flex items-center gap-2">
                                             <Users className="h-4 w-4 text-muted-foreground" />
                                             <span className="font-medium">{job.applicantsCount}</span>
@@ -97,15 +97,16 @@ export default function JobsPage() {
                                             Posted {new Date(job.postedAt).toLocaleDateString()}
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex items-center gap-2 w-full sm:w-auto">
                                         <Button
                                             variant="outline"
                                             size="sm"
+                                            className="flex-1 sm:flex-initial"
                                             onClick={() => router.push(`/jobs/${job.id}/applications`)}
                                         >
                                             View Applications
                                         </Button>
-                                        <Button size="sm" onClick={() => router.push(`/jobs/${job.id}/edit`)}>Edit</Button>
+                                        <Button size="sm" className="flex-1 sm:flex-initial" onClick={() => router.push(`/jobs/${job.id}/edit`)}>Edit</Button>
                                     </div>
                                 </div>
                             </CardContent>

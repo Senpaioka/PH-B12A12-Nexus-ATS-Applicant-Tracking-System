@@ -55,30 +55,38 @@ export default function CandidatesPage() {
 
     return (
         <div className="h-[calc(100vh-8rem)] flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Candidates</h2>
-                    <p className="text-muted-foreground">Manage your recruitment pipeline</p>
+            <div className="flex flex-col gap-6 mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight">Candidates</h2>
+                        <p className="text-muted-foreground">Manage your recruitment pipeline</p>
+                    </div>
+                    <Button onClick={() => router.push('/candidates/new')} className="w-full sm:w-auto">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Candidate
+                    </Button>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <div className="relative">
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="relative flex-1 w-full sm:max-w-xs">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <input
                             type="text"
                             placeholder="Search pipeline..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9 pr-4 py-2 bg-background border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 w-64"
+                            className="pl-9 pr-4 py-2 w-full bg-background border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                         />
                     </div>
-                    <Button variant="outline" size="icon">
-                        <Filter className="h-4 w-4" />
-                    </Button>
-                    <Button onClick={() => router.push('/candidates/new')}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Candidate
-                    </Button>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <Button variant="outline" size="sm" className="flex-1 sm:flex-initial h-9">
+                            <Filter className="h-4 w-4 mr-2" />
+                            Filters
+                        </Button>
+                        <Button variant="outline" size="icon" className="h-9 w-9">
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
             </div>
 

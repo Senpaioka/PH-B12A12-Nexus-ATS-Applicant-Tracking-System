@@ -52,7 +52,7 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Total Candidates"
                     value="1,284"
@@ -79,13 +79,13 @@ export default function DashboardPage() {
                 />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4">
+            <div className="grid gap-6 lg:grid-cols-7">
+                <Card className="lg:col-span-4">
                     <CardHeader>
                         <CardTitle>Application Trends</CardTitle>
                     </CardHeader>
                     <CardContent className="pl-2">
-                        <div className="h-[300px]">
+                        <div className="h-[250px] sm:h-[300px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={data}>
                                     <defs>
@@ -126,12 +126,12 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="col-span-3">
+                <Card className="lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Recent Activity</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-8">
+                        <div className="space-y-6">
                             {[
                                 { name: "Sarah Chen", action: "applied for", target: "Senior Frontend Engineer", time: "2 hours ago" },
                                 { name: "Mike Ross", action: "moved to", target: "Interview Stage", time: "4 hours ago" },
@@ -139,20 +139,21 @@ export default function DashboardPage() {
                                 { name: "David Kim", action: "completed", target: "Technical Assessment", time: "Yesterday" },
                                 { name: "Recruiting Team", action: "scheduled", target: "Team Debrief", time: "2 days ago" },
                             ].map((item, i) => (
-                                <div className="flex items-center" key={i}>
-                                    <div className="ml-4 space-y-1">
-                                        <p className="text-sm font-medium leading-none">
+                                <div className="flex items-center gap-3" key={i}>
+                                    <div className="h-8 w-8 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center text-xs font-bold">
+                                        {item.name.split(' ').map(n => n[0]).join('')}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium leading-tight truncate md:whitespace-normal">
                                             <span className="font-semibold">{item.name}</span> {item.action} <span className="text-primary">{item.target}</span>
                                         </p>
                                         <p className="text-xs text-muted-foreground">
                                             {item.time}
                                         </p>
                                     </div>
-                                    <div className="ml-auto font-medium">
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             ))}
                         </div>
