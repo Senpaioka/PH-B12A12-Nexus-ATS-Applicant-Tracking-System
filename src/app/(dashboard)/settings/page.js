@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { User, Bell, Shield, Users, Save, Building, Upload } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { User, Bell, Shield, Users, Save, Building, Upload, Loader2, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import {
     Button,
     Input,
@@ -20,7 +21,191 @@ import {
 } from '@/components/ui/common';
 
 export default function SettingsPage() {
+    const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState('general');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [profile, setProfile] = useState({
+        name: '',
+        email: '',
+        bio: '',
+        photoURL: ''
+    });
+    const [formData, setFormData] = useState({
+        name: '',
+        bio: '',
+        photoURL: ''
+    });
+    const [errors, setErrors] = useState({});
+    const [successMessage, setSuccessMessage] = useState('');
+    const [bioValidation, setBioValidation] = useState(null);
+    const [photoUrlValidation, setPhotoUrlValidation] = useState(null);
+
+    // Load profile data on component mount
+    useEffect(() => {
+        if (session?.user) {
+            loadProfile();
+        }
+    }, [session]);
+
+    // Real-time bio validation
+    useEffect(() => {
+        if (formData.bio && formData.bio.trim()) {
+            const wordCount = formData.bio.trim().split(/\s+/).filter(word => word.length > 0).length;
+            setBioValidation({
+                wordCount,
+                isValid: wordCount >= 300 && wordCount <= 500,
+                isTooShort: wordCount > 0 && wordCount < 300,
+                isTooLong: wordCount > 500,
+                wordsNeeded: wordCount < 300 ? 300 - wordCount : 0,
+                wordsOver: wordCount > 500 ? wordCount - 500 : 0
+            });
+        } else {
+            setBioValidation(null);
+        }
+    }, [formData.bio]);
+
+    // Real-time photo URL validation
+    useEffect(() => {
+        if (formData.photoURL && formData.photoURL.trim()) {
+            const urlRegex = /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i;
+            if (urlRegex.test(formData.photoURL)) {
+                setPhotoUrlValidation({ isValid: true, message: 'Valid image URL' });
+            } else {
+                setPhotoUrlValidation({ 
+                    isValid: false, 
+                    message: 'URL must be a valid image URL (jpg, jpeg, png, gif, webp)' 
+                });
+            }
+        } else {
+            setPhotoUrlValidation(null);
+        }
+    }, [formData.photoURL]);
+
+    const loadProfile = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/user/profile');
+            const data = await response.json();
+
+            if (data.success) {
+                setProfile(data.data);
+                setFormData({
+                    name: data.data.name || '',
+                    bio: data.data.bio || '',
+                    photoURL: data.data.photoURL || ''
+                });
+            } else {
+                console.error('Failed to load profile:', data.error);
+            }
+        } catch (error) {
+            console.error('Profile load error:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        // Name validation (optional)
+        if (formData.name && formData.name.trim().length > 100) {
+            newErrors.name = 'Name must not exceed 100 characters';
+        }
+
+        // Bio validation (optional but if provided must be valid)
+        if (formData.bio && formData.bio.trim()) {
+            if (bioValidation && !bioValidation.isValid) {
+                if (bioValidation.isTooShort) {
+                    newErrors.bio = `Bio must be at least 300 words (currently ${bioValidation.wordCount} words)`;
+                } else if (bioValidation.isTooLong) {
+                    newErrors.bio = `Bio must not exceed 500 words (currently ${bioValidation.wordCount} words)`;
+                }
+            }
+        }
+
+        // Photo URL validation (optional but if provided must be valid)
+        if (formData.photoURL && formData.photoURL.trim()) {
+            if (photoUrlValidation && !photoUrlValidation.isValid) {
+                newErrors.photoURL = photoUrlValidation.message;
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSaveProfile = async () => {
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsSaving(true);
+        setErrors({});
+        setSuccessMessage('');
+
+        try {
+            const response = await fetch('/api/user/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: formData.name.trim() || null,
+                    bio: formData.bio.trim() || null,
+                    photoURL: formData.photoURL.trim() || null
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setProfile(data.data);
+                setSuccessMessage('Profile updated successfully!');
+                
+                // Clear success message after 3 seconds
+                setTimeout(() => {
+                    setSuccessMessage('');
+                }, 3000);
+            } else {
+                // Handle validation errors
+                if (data.error.field) {
+                    setErrors({ [data.error.field]: data.error.message });
+                } else {
+                    setErrors({ general: data.error.message });
+                }
+            }
+        } catch (error) {
+            console.error('Profile update error:', error);
+            setErrors({ general: 'Network error. Please check your connection and try again.' });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const getBioStatusColor = () => {
+        if (!bioValidation) return '';
+        if (bioValidation.isValid) return 'text-green-600';
+        if (bioValidation.isTooShort) return 'text-yellow-600';
+        if (bioValidation.isTooLong) return 'text-red-600';
+        return '';
+    };
+
+    const getBioStatusIcon = () => {
+        if (!bioValidation) return null;
+        if (bioValidation.isValid) return <CheckCircle className="h-4 w-4 text-green-500" />;
+        if (bioValidation.isTooShort) return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+        if (bioValidation.isTooLong) return <XCircle className="h-4 w-4 text-red-500" />;
+        return null;
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto pb-10">
@@ -58,41 +243,141 @@ export default function SettingsPage() {
 
                     <div className="flex-1">
                         <TabsContent value="general" className="space-y-6">
+                            {successMessage && (
+                                <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle className="h-4 w-4 text-green-600" />
+                                        <p className="text-sm text-green-800">{successMessage}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {errors.general && (
+                                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                                    <div className="flex items-center gap-2">
+                                        <XCircle className="h-4 w-4 text-red-600" />
+                                        <p className="text-sm text-red-800">{errors.general}</p>
+                                    </div>
+                                </div>
+                            )}
+
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Profile Information</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-20 w-20 rounded-full bg-secondary flex items-center justify-center text-2xl font-bold text-secondary-foreground">
-                                            AC
+                                        <div className="h-20 w-20 rounded-full bg-secondary flex items-center justify-center text-2xl font-bold text-secondary-foreground overflow-hidden">
+                                            {formData.photoURL ? (
+                                                <img 
+                                                    src={formData.photoURL} 
+                                                    alt="Profile" 
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.nextSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                            ) : (
+                                                (profile.name || session?.user?.name || 'U').charAt(0).toUpperCase()
+                                            )}
+                                            <div className="w-full h-full items-center justify-center text-2xl font-bold text-secondary-foreground" style={{display: formData.photoURL ? 'none' : 'flex'}}>
+                                                {(profile.name || session?.user?.name || 'U').charAt(0).toUpperCase()}
+                                            </div>
                                         </div>
-                                        <Button variant="outline" size="sm">
-                                            <Upload className="mr-2 h-4 w-4" />
-                                            Change Avatar
-                                        </Button>
                                     </div>
+                                    
                                     <Separator />
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="firstName">First name</Label>
-                                            <Input id="firstName" defaultValue="Alex" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="lastName">Last name</Label>
-                                            <Input id="lastName" defaultValue="Chen" />
-                                        </div>
+                                    
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name">Full Name</Label>
+                                        <Input 
+                                            id="name" 
+                                            value={formData.name}
+                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                            placeholder="Enter your full name"
+                                            className={errors.name ? 'border-red-500' : ''}
+                                        />
+                                        {errors.name && (
+                                            <p className="text-sm text-red-600">{errors.name}</p>
+                                        )}
                                     </div>
+                                    
                                     <div className="space-y-2">
                                         <Label htmlFor="email">Email</Label>
-                                        <Input id="email" type="email" defaultValue="alex.chen@nexus.co" />
+                                        <Input 
+                                            id="email" 
+                                            type="email" 
+                                            value={profile.email || session?.user?.email || ''}
+                                            disabled
+                                            className="bg-muted"
+                                        />
+                                        <p className="text-xs text-muted-foreground">Email cannot be changed</p>
                                     </div>
+
                                     <div className="space-y-2">
-                                        <Label htmlFor="bio">Bio</Label>
-                                        <Textarea id="bio" placeholder="Tell us a little bit about yourself" className="resize-none" />
+                                        <Label htmlFor="photoURL">Profile Photo URL</Label>
+                                        <div className="relative">
+                                            <Input 
+                                                id="photoURL" 
+                                                value={formData.photoURL}
+                                                onChange={e => setFormData({ ...formData, photoURL: e.target.value })}
+                                                placeholder="https://example.com/photo.jpg"
+                                                className={errors.photoURL ? 'border-red-500' : photoUrlValidation?.isValid ? 'border-green-500' : ''}
+                                            />
+                                            {photoUrlValidation && (
+                                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                    {photoUrlValidation.isValid ? (
+                                                        <CheckCircle className="h-4 w-4 text-green-500" />
+                                                    ) : (
+                                                        <XCircle className="h-4 w-4 text-red-500" />
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {errors.photoURL && (
+                                            <p className="text-sm text-red-600">{errors.photoURL}</p>
+                                        )}
+                                        {photoUrlValidation && !photoUrlValidation.isValid && !errors.photoURL && (
+                                            <p className="text-sm text-red-600">{photoUrlValidation.message}</p>
+                                        )}
+                                        <p className="text-xs text-muted-foreground">
+                                            Supported formats: JPG, JPEG, PNG, GIF, WebP
+                                        </p>
                                     </div>
+                                    
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor="bio">Bio</Label>
+                                            <div className="flex items-center gap-2">
+                                                {getBioStatusIcon()}
+                                                {bioValidation && (
+                                                    <span className={`text-xs ${getBioStatusColor()}`}>
+                                                        {bioValidation.wordCount} words
+                                                        {bioValidation.isTooShort && ` (need ${bioValidation.wordsNeeded} more)`}
+                                                        {bioValidation.isTooLong && ` (${bioValidation.wordsOver} over limit)`}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <Textarea 
+                                            id="bio" 
+                                            value={formData.bio}
+                                            onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                                            placeholder="Tell us about yourself (300-500 words)"
+                                            className={`resize-none min-h-[120px] ${errors.bio ? 'border-red-500' : bioValidation?.isValid ? 'border-green-500' : ''}`}
+                                        />
+                                        {errors.bio && (
+                                            <p className="text-sm text-red-600">{errors.bio}</p>
+                                        )}
+                                        <p className="text-xs text-muted-foreground">
+                                            Write a brief biography about yourself (300-500 words required)
+                                        </p>
+                                    </div>
+                                    
                                     <div className="flex justify-end">
-                                        <Button>
+                                        <Button onClick={handleSaveProfile} disabled={isSaving}>
+                                            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                             <Save className="mr-2 h-4 w-4" />
                                             Save Changes
                                         </Button>

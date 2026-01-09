@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import {
     LayoutDashboard,
     Users,
@@ -51,9 +52,11 @@ export default function DashboardLayout({ children }) {
         return pathname.startsWith(path);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('nexus_auth');
-        window.location.href = '/login';
+    const handleLogout = async () => {
+        await signOut({ 
+            callbackUrl: '/login',
+            redirect: true 
+        });
     };
 
     return (
