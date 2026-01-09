@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import {
     LayoutDashboard,
     Users,
@@ -17,6 +17,43 @@ import {
     X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const ProfileAvatar = ({ profile, session }) => {
+    const [imageError, setImageError] = useState(false);
+    
+    const displayName = profile?.name || session?.user?.name || 'User';
+    const photoURL = profile?.photoURL;
+    
+    const handleImageError = () => {
+        setImageError(true);
+    };
+    
+    if (photoURL && !imageError) {
+        return (
+            <Link href="/settings">
+                <div className="h-8 w-8 rounded-full overflow-hidden border-2 border-background ring-offset-2 ring-offset-background hover:ring-2 ring-primary/20 cursor-pointer">
+                    <img 
+                        src={photoURL} 
+                        alt={`${displayName}'s profile`}
+                        className="w-full h-full object-cover"
+                        onError={handleImageError}
+                    />
+                </div>
+            </Link>
+        );
+    }
+    
+    // Fallback to initials
+    return (
+        <Link href="/settings">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 border-2 border-background ring-offset-2 ring-offset-background hover:ring-2 ring-primary/20 cursor-pointer flex items-center justify-center">
+                <span className="text-xs font-medium text-white">
+                    {displayName.charAt(0).toUpperCase()}
+                </span>
+            </div>
+        </Link>
+    );
+};
 
 const SidebarItem = ({
     icon: Icon,
@@ -41,8 +78,59 @@ const SidebarItem = ({
 );
 
 export default function DashboardLayout({ children }) {
+    const { data: session } = useSession();
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [profile, setProfile] = useState(null);
+    const profileLoadedRef = useRef(false);
+    const currentUserIdRef = useRef(null);
+
+    // Function to refresh profile (can be called when profile is updated)
+    const refreshProfile = () => {
+        profileLoadedRef.current = false;
+        currentUserIdRef.current = null;
+        setProfile(null);
+    };
+
+    // Load user profile data only once when session is available
+    useEffect(() => {
+        const userId = session?.user?.id;
+        
+        // Only load if we have a user and haven't loaded for this user yet
+        if (userId && (!profileLoadedRef.current || currentUserIdRef.current !== userId)) {
+            profileLoadedRef.current = true;
+            currentUserIdRef.current = userId;
+            
+            // Use setTimeout to avoid synchronous setState in effect
+            setTimeout(() => {
+                fetch('/api/user/profile')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            setProfile(data.data);
+                        } else {
+                            console.error('Failed to load profile:', data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Profile load error:', error);
+                    });
+            }, 0);
+        }
+    }, [session?.user?.id]);
+
+    // Listen for profile updates
+    useEffect(() => {
+        const handleProfileUpdate = () => {
+            refreshProfile();
+        };
+
+        window.addEventListener('profileUpdated', handleProfileUpdate);
+        
+        return () => {
+            window.removeEventListener('profileUpdated', handleProfileUpdate);
+        };
+    }, []);
 
     const isActive = (path) => {
         if (path === '/') {
@@ -149,7 +237,7 @@ export default function DashboardLayout({ children }) {
                             <Bell className="h-5 w-5 text-muted-foreground" />
                             <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 border-2 border-background"></span>
                         </button>
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 border-2 border-background ring-offset-2 ring-offset-background hover:ring-2 ring-primary/20 cursor-pointer"></div>
+                        <ProfileAvatar profile={profile} session={session} />
                     </div>
                 </header>
 

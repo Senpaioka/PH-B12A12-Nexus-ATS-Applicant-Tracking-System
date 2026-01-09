@@ -163,6 +163,9 @@ export default function SettingsPage() {
                 setProfile(data.data);
                 setSuccessMessage('Profile updated successfully!');
                 
+                // Dispatch event to update navbar profile
+                window.dispatchEvent(new CustomEvent('profileUpdated'));
+                
                 // Clear success message after 3 seconds
                 setTimeout(() => {
                     setSuccessMessage('');
