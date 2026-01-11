@@ -159,11 +159,11 @@ export default function RegisterPage() {
             const data = await response.json();
 
             if (data.success) {
-                setSuccessMessage(data.message);
-                // Redirect to login after a short delay
+                setSuccessMessage('Account created successfully! Please check your email to verify your account before logging in.');
+                // Redirect to verification page after a short delay
                 setTimeout(() => {
-                    router.push('/login?message=registration-success');
-                }, 2000);
+                    router.push('/verify-email?message=registration-success');
+                }, 3000);
             } else {
                 // Handle validation errors
                 if (data.error.details) {

@@ -14,9 +14,11 @@ import {
     Bell,
     Search,
     Menu,
-    X
+    X,
+    AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/common';
 
 const ProfileAvatar = ({ profile, session }) => {
     const [imageError, setImageError] = useState(false);
@@ -110,6 +112,11 @@ export default function DashboardLayout({ children }) {
                             setProfile(data.data);
                         } else {
                             console.error('Failed to load profile:', data.error);
+                            // If user not found, sign out to clear invalid session
+                            if (data.error?.code === 'USER_NOT_FOUND') {
+                                console.log('User not found in database, signing out...');
+                                signOut({ callbackUrl: '/login' });
+                            }
                         }
                     })
                     .catch(error => {
@@ -118,6 +125,34 @@ export default function DashboardLayout({ children }) {
             }, 0);
         }
     }, [session?.user?.id]);
+
+    // Refresh profile when user navigates back (e.g., after email verification)
+    useEffect(() => {
+        const handleFocus = () => {
+            // Refresh profile when window regains focus (user might have verified email in another tab)
+            if (session?.user?.id && profile) {
+                fetch('/api/user/profile')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            setProfile(data.data);
+                        } else {
+                            // If user not found, sign out to clear invalid session
+                            if (data.error?.code === 'USER_NOT_FOUND') {
+                                console.log('User not found in database during refresh, signing out...');
+                                signOut({ callbackUrl: '/login' });
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Profile refresh error:', error);
+                    });
+            }
+        };
+
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+    }, [session?.user?.id, profile]);
 
     // Listen for profile updates
     useEffect(() => {
@@ -240,6 +275,30 @@ export default function DashboardLayout({ children }) {
                         <ProfileAvatar profile={profile} session={session} />
                     </div>
                 </header>
+
+                {/* Email Verification Banner */}
+                {session?.user && profile && !profile.emailVerified && (
+                    <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-3">
+                        <div className="flex items-center justify-between max-w-7xl mx-auto">
+                            <div className="flex items-center gap-3">
+                                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                                <div>
+                                    <p className="text-sm font-medium text-yellow-800">
+                                        Please verify your email address
+                                    </p>
+                                    <p className="text-xs text-yellow-700">
+                                        Check your inbox for a verification email or request a new one.
+                                    </p>
+                                </div>
+                            </div>
+                            <Link href="/verify-email">
+                                <Button variant="outline" size="sm" className="border-yellow-300 text-yellow-800 hover:bg-yellow-100">
+                                    Verify Email
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                )}
 
                 {/* Page Content */}
                 <div className="flex-1 overflow-auto p-4 md:p-8 bg-muted/20">

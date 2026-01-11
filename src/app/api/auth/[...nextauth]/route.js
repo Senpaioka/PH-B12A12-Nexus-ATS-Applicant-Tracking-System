@@ -55,6 +55,14 @@ const authOptions = {
             return null;
           }
 
+          // Check if email is verified (optional - can be enforced or not)
+          if (!user.emailVerified) {
+            console.log('User email not verified:', email);
+            // For now, we'll allow login but include verification status
+            // To enforce verification, uncomment the line below:
+            // return null;
+          }
+
           // Verify password
           const isValidPassword = await verifyPassword(password, user.password);
           if (!isValidPassword) {

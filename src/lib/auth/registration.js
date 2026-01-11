@@ -6,6 +6,8 @@
 import { getUsersCollection } from '../mongodb.js';
 import { hashPassword, validatePasswordStrength } from './password.js';
 import { validateUserDocument } from '../db-init.js';
+import { createVerificationToken } from './verification.js';
+import { sendVerificationEmail } from '../email/email-service.js';
 
 /**
  * Email validation regex pattern
@@ -199,9 +201,25 @@ export async function registerUser(email, password, additionalData = {}) {
     
     console.log(`New user registered: ${normalizedEmail}`);
     
+    const userId = result.insertedId.toString();
+    
+    // Create verification token and send email
+    let emailVerificationSent = false;
+    try {
+      const verificationToken = await createVerificationToken(userId, normalizedEmail);
+      await sendVerificationEmail(normalizedEmail, verificationToken, validatedUserData.name);
+      console.log(`✅ Verification email sent to: ${normalizedEmail}`);
+      emailVerificationSent = true;
+    } catch (emailError) {
+      console.error('⚠️ Failed to send verification email:', emailError);
+      // Don't fail registration if email fails, just log the error
+      // User can still register and request verification email later
+    }
+    
     return {
-      id: result.insertedId.toString(),
-      ...userWithoutPassword
+      id: userId,
+      ...userWithoutPassword,
+      emailVerificationSent
     };
     
   } catch (error) {

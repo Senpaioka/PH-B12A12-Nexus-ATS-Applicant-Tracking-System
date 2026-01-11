@@ -26,6 +26,8 @@ export default function LoginPage() {
 
         if (message === 'registration-success') {
             setSuccessMessage('Account created successfully! Please sign in with your credentials.');
+        } else if (message === 'email-verified') {
+            setSuccessMessage('Email verified successfully! You can now sign in.');
         }
 
         if (error) {

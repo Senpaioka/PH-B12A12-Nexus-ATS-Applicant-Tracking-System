@@ -11,7 +11,12 @@ const requiredEnvVars = [
 ];
 
 const optionalEnvVars = [
-  'PORT'
+  'PORT',
+  'SMTP_HOST',
+  'SMTP_PORT',
+  'SMTP_USER',
+  'SMTP_PASS',
+  'SMTP_FROM'
 ];
 
 /**
@@ -34,6 +39,11 @@ export function validateEnvironmentVariables() {
     warnings.push('NEXTAUTH_SECRET is using the default value. Please generate a secure secret for production.');
   }
 
+  // Check email configuration (optional but recommended for production)
+  if (process.env.NODE_ENV === 'production' && !process.env.SMTP_HOST) {
+    warnings.push('SMTP configuration not found. Email functionality will be disabled.');
+  }
+
   if (missing.length > 0) {
     const errorMessage = `Missing required environment variables: ${missing.join(', ')}\n\n` +
       'Please check your .env file and ensure all required variables are set.\n' +
@@ -50,7 +60,12 @@ export function validateEnvironmentVariables() {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     DB_NAME: process.env.DB_NAME || 'nexus_ats',
-    PORT: process.env.PORT || 3000
+    PORT: process.env.PORT || 3000,
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_PORT: parseInt(process.env.SMTP_PORT) || 587,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASS: process.env.SMTP_PASS,
+    SMTP_FROM: process.env.SMTP_FROM
   };
 }
 

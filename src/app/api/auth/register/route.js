@@ -70,16 +70,22 @@ export async function POST(request) {
     const newUser = await registerUser(email, password, { name });
 
     // Return success response
+    const message = newUser.emailVerificationSent 
+      ? 'Account created successfully! Please check your email to verify your account before logging in.'
+      : 'Account created successfully! You can request a verification email from the verification page.';
+      
     return NextResponse.json(
       {
         success: true,
-        message: 'Account created successfully! You can now log in.',
+        message,
         user: {
           id: newUser.id,
           email: newUser.email,
           name: newUser.name,
           role: newUser.role,
-          createdAt: newUser.createdAt
+          createdAt: newUser.createdAt,
+          emailVerified: newUser.emailVerified,
+          emailVerificationSent: newUser.emailVerificationSent
         }
       },
       { status: 201 }
