@@ -19,26 +19,55 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/common';
+import { normalizeImageUrl, getFallbackImageUrl } from '@/lib/utils/image-utils';
 
 const ProfileAvatar = ({ profile, session }) => {
     const [imageError, setImageError] = useState(false);
+    const [fallbackError, setFallbackError] = useState(false);
     
     const displayName = profile?.name || session?.user?.name || 'User';
-    const photoURL = profile?.photoURL;
+    const originalPhotoURL = profile?.photoURL;
+    const normalizedPhotoURL = originalPhotoURL ? normalizeImageUrl(originalPhotoURL) : null;
+    const fallbackPhotoURL = originalPhotoURL ? getFallbackImageUrl(originalPhotoURL) : null;
     
     const handleImageError = () => {
         setImageError(true);
     };
     
-    if (photoURL && !imageError) {
+    const handleFallbackError = () => {
+        setFallbackError(true);
+    };
+    
+    // Try normalized URL first
+    if (normalizedPhotoURL && !imageError) {
         return (
             <Link href="/settings">
                 <div className="h-8 w-8 rounded-full overflow-hidden border-2 border-background ring-offset-2 ring-offset-background hover:ring-2 ring-primary/20 cursor-pointer">
                     <img 
-                        src={photoURL} 
+                        src={normalizedPhotoURL} 
                         alt={`${displayName}'s profile`}
                         className="w-full h-full object-cover"
                         onError={handleImageError}
+                        crossOrigin="anonymous"
+                        referrerPolicy="no-referrer"
+                    />
+                </div>
+            </Link>
+        );
+    }
+    
+    // Try fallback URL if main image failed
+    if (fallbackPhotoURL && imageError && !fallbackError) {
+        return (
+            <Link href="/settings">
+                <div className="h-8 w-8 rounded-full overflow-hidden border-2 border-background ring-offset-2 ring-offset-background hover:ring-2 ring-primary/20 cursor-pointer">
+                    <img 
+                        src={fallbackPhotoURL} 
+                        alt={`${displayName}'s profile`}
+                        className="w-full h-full object-cover"
+                        onError={handleFallbackError}
+                        crossOrigin="anonymous"
+                        referrerPolicy="no-referrer"
                     />
                 </div>
             </Link>
@@ -154,16 +183,25 @@ export default function DashboardLayout({ children }) {
         return () => window.removeEventListener('focus', handleFocus);
     }, [session?.user?.id, profile]);
 
-    // Listen for profile updates
+    // Listen for profile updates and email verification
     useEffect(() => {
         const handleProfileUpdate = () => {
             refreshProfile();
         };
 
+        const handleEmailVerified = () => {
+            // Force profile refresh when email is verified
+            setTimeout(() => {
+                refreshProfile();
+            }, 1000); // Small delay to ensure database is updated
+        };
+
         window.addEventListener('profileUpdated', handleProfileUpdate);
+        window.addEventListener('emailVerified', handleEmailVerified);
         
         return () => {
             window.removeEventListener('profileUpdated', handleProfileUpdate);
+            window.removeEventListener('emailVerified', handleEmailVerified);
         };
     }, []);
 

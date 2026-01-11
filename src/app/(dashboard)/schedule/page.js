@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Clock, Video, MoreVertical, Calendar as CalendarIcon, Users as UsersIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@/components/ui/common';
-import { interviews } from '@/../mockData';
+import { interviews } from '@/lib/data/sampleData';
 
 export default function SchedulePage() {
     const router = useRouter();
@@ -48,15 +48,15 @@ export default function SchedulePage() {
                                         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm text-muted-foreground">
                                             <div className="flex items-center gap-1.5">
                                                 <Clock className="h-4 w-4" />
-                                                {interview.time} (45m)
+                                                {interview.time} ({interview.duration})
                                             </div>
                                             <div className="flex items-center gap-1.5">
                                                 <Video className="h-4 w-4" />
-                                                Google Meet
+                                                {interview.type}
                                             </div>
                                             <div className="flex items-center gap-1.5">
                                                 <UsersIcon className="h-4 w-4" />
-                                                <span className="truncate">{interview.interviewers.join(', ')}</span>
+                                                <span className="truncate">{interview.interviewers?.join(', ') || interview.interviewer || 'TBD'}</span>
                                             </div>
                                         </div>
                                     </div>

@@ -68,13 +68,32 @@ export default function SettingsPage() {
     // Real-time photo URL validation
     useEffect(() => {
         if (formData.photoURL && formData.photoURL.trim()) {
-            const urlRegex = /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i;
-            if (urlRegex.test(formData.photoURL)) {
+            // More flexible URL validation that accepts Google profile URLs and other image services
+            const urlRegex = /^https?:\/\/.+/i;
+            
+            if (!urlRegex.test(formData.photoURL)) {
+                setPhotoUrlValidation({ 
+                    isValid: false, 
+                    message: 'URL must be a valid HTTPS URL' 
+                });
+                return;
+            }
+            
+            // Check for common image hosting domains or file extensions
+            const isImageUrl = 
+                formData.photoURL.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i) || // Traditional image URLs with extensions
+                formData.photoURL.includes('googleusercontent.com') || // Google profile images
+                formData.photoURL.includes('gravatar.com') || // Gravatar images
+                formData.photoURL.includes('imgur.com') || // Imgur images
+                formData.photoURL.includes('cloudinary.com') || // Cloudinary images
+                formData.photoURL.includes('amazonaws.com'); // AWS S3 images
+            
+            if (isImageUrl) {
                 setPhotoUrlValidation({ isValid: true, message: 'Valid image URL' });
             } else {
                 setPhotoUrlValidation({ 
                     isValid: false, 
-                    message: 'URL must be a valid image URL (jpg, jpeg, png, gif, webp)' 
+                    message: 'URL must be from a recognized image service or have a valid image file extension' 
                 });
             }
         } else {
@@ -276,6 +295,8 @@ export default function SettingsPage() {
                                                     src={formData.photoURL} 
                                                     alt="Profile" 
                                                     className="w-full h-full object-cover"
+                                                    crossOrigin="anonymous"
+                                                    referrerPolicy="no-referrer"
                                                     onError={(e) => {
                                                         e.target.style.display = 'none';
                                                         e.target.nextSibling.style.display = 'flex';
@@ -345,7 +366,7 @@ export default function SettingsPage() {
                                             <p className="text-sm text-red-600">{photoUrlValidation.message}</p>
                                         )}
                                         <p className="text-xs text-muted-foreground">
-                                            Supported formats: JPG, JPEG, PNG, GIF, WebP
+                                            Supported: Image URLs with extensions (JPG, PNG, etc.) or from recognized services (Google, Gravatar, etc.)
                                         </p>
                                     </div>
                                     

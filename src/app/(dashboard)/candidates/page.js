@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Filter, MoreVertical, Plus } from 'lucide-react';
 import { Card, Badge, Button } from '@/components/ui/common';
-import { candidates as initialCandidates } from '@/../mockData';
+import { candidates as initialCandidates } from '@/lib/data/sampleData';
 import { cn } from '@/lib/utils';
 
 const PIPELINE_STAGES = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired'];

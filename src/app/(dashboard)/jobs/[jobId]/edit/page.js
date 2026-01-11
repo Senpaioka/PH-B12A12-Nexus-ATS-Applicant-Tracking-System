@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { Button, Input, Label, Textarea, Card, CardContent, CardHeader, CardTitle, Select, Separator } from '@/components/ui/common';
-import { jobs } from '@/../mockData';
+import { jobs } from '@/lib/data/sampleData';
 
 export default function EditJobPage() {
     const router = useRouter();

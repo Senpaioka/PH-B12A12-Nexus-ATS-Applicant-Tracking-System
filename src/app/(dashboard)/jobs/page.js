@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Plus, MapPin, DollarSign, Users } from 'lucide-react';
 import { Card, CardContent, Button, Select } from '@/components/ui/common';
-import { jobs } from '@/../mockData';
+import { jobs } from '@/lib/data/sampleData';
 
 const StatusBadge = ({ status }) => {
     const styles = {

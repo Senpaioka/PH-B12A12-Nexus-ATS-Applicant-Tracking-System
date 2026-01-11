@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save } from 'lucide-react';
 import { Button, Input, Label, Card, CardContent, CardHeader, CardTitle, Select, Separator, Textarea } from '@/components/ui/common';
-import { candidates, jobs } from '@/../mockData';
+import { candidates, jobs } from '@/lib/data/sampleData';
 
 export default function ScheduleInterviewPage() {
     const router = useRouter();

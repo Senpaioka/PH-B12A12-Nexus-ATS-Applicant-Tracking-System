@@ -1,13 +1,15 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Users,
     Briefcase,
     CalendarCheck,
     TrendingUp,
-    MoreHorizontal
+    MoreHorizontal,
+    CheckCircle,
+    X
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui/common';
@@ -41,9 +43,50 @@ const StatCard = ({ title, value, subtext, icon: Icon }) => (
 
 export default function DashboardPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const [successMessage, setSuccessMessage] = useState('');
+
+    // Check for messages from URL params
+    useEffect(() => {
+        const message = searchParams.get('message');
+        
+        if (message === 'email-verified') {
+            setSuccessMessage('Email verified successfully! Your account is now fully activated.');
+            
+            // Clear the message from URL after showing it
+            const url = new URL(window.location);
+            url.searchParams.delete('message');
+            window.history.replaceState({}, '', url);
+            
+            // Auto-hide message after 5 seconds
+            setTimeout(() => {
+                setSuccessMessage('');
+            }, 5000);
+        }
+    }, [searchParams]);
 
     return (
         <div className="space-y-8">
+            {/* Success Message Banner */}
+            {successMessage && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                            <p className="text-sm font-medium text-green-800">
+                                {successMessage}
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setSuccessMessage('')}
+                            className="text-green-600 hover:text-green-800 transition-colors"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center justify-between space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
                 <div className="flex items-center space-x-2">

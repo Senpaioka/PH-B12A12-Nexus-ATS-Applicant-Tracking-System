@@ -12,7 +12,7 @@ import { connectToDatabase, getUsersCollection } from './mongodb.js';
 const userSchema = {
   $jsonSchema: {
     bsonType: 'object',
-    required: ['email', 'password', 'createdAt'],
+    required: ['email', 'createdAt'],
     properties: {
       email: {
         bsonType: 'string',
@@ -20,24 +20,22 @@ const userSchema = {
         description: 'Must be a valid email address'
       },
       password: {
-        bsonType: 'string',
-        minLength: 8,
-        description: 'Must be a hashed password string with minimum 8 characters'
+        bsonType: ['string', 'null'],
+        description: 'Must be a hashed password string with minimum 8 characters, or null for OAuth users'
       },
       name: {
         bsonType: 'string',
         description: 'Optional user display name'
       },
       bio: {
-        bsonType: 'string',
+        bsonType: ['string', 'null'],
         minLength: 300,
         maxLength: 500,
         description: 'User biography (300-500 words)'
       },
       photoURL: {
-        bsonType: 'string',
-        pattern: '^https?://.*\\.(jpg|jpeg|png|gif|webp)$',
-        description: 'URL to user profile photo'
+        bsonType: ['string', 'null'],
+        description: 'URL to user profile photo (including Google profile URLs)'
       },
       role: {
         bsonType: 'string',
@@ -63,6 +61,15 @@ const userSchema = {
       emailVerified: {
         bsonType: 'bool',
         description: 'Whether the email address has been verified'
+      },
+      provider: {
+        bsonType: 'string',
+        enum: ['credentials', 'google'],
+        description: 'Authentication provider used'
+      },
+      googleId: {
+        bsonType: 'string',
+        description: 'Google OAuth user ID'
       }
     }
   }
@@ -198,8 +205,8 @@ export function validateUserDocument(userData) {
     throw new Error('Email is required and must be a string');
   }
   
-  if (!userData.password || typeof userData.password !== 'string') {
-    throw new Error('Password is required and must be a string');
+  if (!userData.password && userData.provider !== 'google') {
+    throw new Error('Password is required for non-OAuth users');
   }
   
   // Email format validation

@@ -45,12 +45,29 @@ export function validateImageUrl(url) {
     return { isValid: false, error: 'URL is required' };
   }
   
-  const urlRegex = /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i;
+  // More flexible URL validation that accepts Google profile URLs and other image services
+  const urlRegex = /^https?:\/\/.+/i;
   
   if (!urlRegex.test(url)) {
     return { 
       isValid: false, 
-      error: 'URL must be a valid image URL (jpg, jpeg, png, gif, webp)' 
+      error: 'URL must be a valid HTTPS URL' 
+    };
+  }
+  
+  // Check for common image hosting domains or file extensions
+  const isImageUrl = 
+    url.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i) || // Traditional image URLs with extensions
+    url.includes('googleusercontent.com') || // Google profile images
+    url.includes('gravatar.com') || // Gravatar images
+    url.includes('imgur.com') || // Imgur images
+    url.includes('cloudinary.com') || // Cloudinary images
+    url.includes('amazonaws.com'); // AWS S3 images
+  
+  if (!isImageUrl) {
+    return { 
+      isValid: false, 
+      error: 'URL must be from a recognized image service or have a valid image file extension' 
     };
   }
   

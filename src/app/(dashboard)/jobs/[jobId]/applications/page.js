@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Search, MoreVertical, Mail, Calendar, Briefcase } from 'lucide-react';
 import { Button, Input, Card, CardHeader, CardTitle, CardContent, Badge, Select } from '@/components/ui/common';
-import { jobs, candidates as allCandidates } from '@/../mockData';
+import { jobs, candidates as allCandidates } from '@/lib/data/sampleData';
 
 export default function JobApplicationsPage() {
     const params = useParams();

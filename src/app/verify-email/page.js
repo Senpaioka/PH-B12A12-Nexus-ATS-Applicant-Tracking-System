@@ -50,12 +50,33 @@ export default function VerifyEmailPage() {
                     user: data.user
                 });
                 
-                // Redirect to login after 5 seconds (increased from 3)
-                console.log('⏰ Setting redirect timer for 5 seconds...');
+                // Trigger profile refresh events for dashboard
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('profileUpdated'));
+                    window.dispatchEvent(new CustomEvent('emailVerified'));
+                }
+                
+                // Redirect to dashboard after 3 seconds if user is logged in, otherwise to login
+                console.log('⏰ Setting redirect timer for 3 seconds...');
                 setTimeout(() => {
-                    console.log('🔄 Redirecting to login...');
-                    router.push('/login?message=email-verified');
-                }, 5000);
+                    // Check if user is logged in by checking for session
+                    fetch('/api/auth/session')
+                        .then(response => response.json())
+                        .then(session => {
+                            if (session?.user) {
+                                console.log('🔄 User is logged in, redirecting to dashboard...');
+                                router.push('/?message=email-verified');
+                            } else {
+                                console.log('🔄 User not logged in, redirecting to login...');
+                                router.push('/login?message=email-verified');
+                            }
+                        })
+                        .catch(() => {
+                            // Fallback to login if session check fails
+                            console.log('🔄 Session check failed, redirecting to login...');
+                            router.push('/login?message=email-verified');
+                        });
+                }, 3000);
             } else {
                 console.log('❌ Verification failed:', data.error);
                 setVerificationStatus({
@@ -152,7 +173,7 @@ export default function VerifyEmailPage() {
                                                     {verificationStatus.message}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Redirecting to login page in 5 seconds...
+                                                    Redirecting in 3 seconds...
                                                 </p>
                                             </div>
                                         </div>

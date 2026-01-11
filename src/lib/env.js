@@ -16,7 +16,9 @@ const optionalEnvVars = [
   'SMTP_PORT',
   'SMTP_USER',
   'SMTP_PASS',
-  'SMTP_FROM'
+  'SMTP_FROM',
+  'GOOGLE_CLIENT_ID',
+  'GOOGLE_CLIENT_SECRET'
 ];
 
 /**
@@ -44,6 +46,15 @@ export function validateEnvironmentVariables() {
     warnings.push('SMTP configuration not found. Email functionality will be disabled.');
   }
 
+  // Check Google OAuth configuration (optional)
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Google OAuth not configured. Google sign-in will be disabled.');
+    } else {
+      warnings.push('Google OAuth configuration not found. Google sign-in will be disabled.');
+    }
+  }
+
   if (missing.length > 0) {
     const errorMessage = `Missing required environment variables: ${missing.join(', ')}\n\n` +
       'Please check your .env file and ensure all required variables are set.\n' +
@@ -65,7 +76,9 @@ export function validateEnvironmentVariables() {
     SMTP_PORT: parseInt(process.env.SMTP_PORT) || 587,
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASS: process.env.SMTP_PASS,
-    SMTP_FROM: process.env.SMTP_FROM
+    SMTP_FROM: process.env.SMTP_FROM,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET
   };
 }
 
