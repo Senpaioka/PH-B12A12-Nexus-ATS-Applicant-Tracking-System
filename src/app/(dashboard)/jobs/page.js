@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MoreHorizontal, Plus, MapPin, DollarSign, Users } from 'lucide-react';
+import { MoreHorizontal, Plus, MapPin, DollarSign, Users, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { Card, CardContent, Button, Select } from '@/components/ui/common';
-import { jobs } from '@/lib/data/sampleData';
 
 const StatusBadge = ({ status }) => {
     const styles = {
@@ -22,6 +21,47 @@ const StatusBadge = ({ status }) => {
 export default function JobsPage() {
     const router = useRouter();
     const [statusFilter, setStatusFilter] = useState('All');
+    const [jobs, setJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Fetch jobs from API
+    const fetchJobs = async (status = 'All') => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const params = new URLSearchParams();
+            if (status !== 'All') {
+                params.append('status', status);
+            }
+
+            const response = await fetch(`/api/jobs?${params.toString()}`);
+            const data = await response.json();
+
+            if (data.success) {
+                setJobs(data.jobs || []);
+            } else {
+                setError(data.error?.message || 'Failed to fetch jobs');
+            }
+        } catch (err) {
+            console.error('Error fetching jobs:', err);
+            setError('Network error. Please check your connection and try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Load jobs on component mount
+    useEffect(() => {
+        fetchJobs(statusFilter);
+    }, [statusFilter]);
+
+    // Handle status filter change
+    const handleStatusFilterChange = (e) => {
+        const newStatus = e.target.value;
+        setStatusFilter(newStatus);
+    };
 
     const filteredJobs = jobs.filter(job =>
         statusFilter === 'All' ? true : job.status === statusFilter
@@ -35,10 +75,21 @@ export default function JobsPage() {
                     <p className="text-muted-foreground">Manage job postings and applications</p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchJobs(statusFilter)}
+                        disabled={loading}
+                        className="flex items-center gap-2"
+                    >
+                        <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                        Refresh
+                    </Button>
                     <Select
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
+                        onChange={handleStatusFilterChange}
                         className="w-[150px] bg-background"
+                        disabled={loading}
                     >
                         <option value="All">All Status</option>
                         <option value="Active">Active</option>
@@ -52,68 +103,110 @@ export default function JobsPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4">
-                {filteredJobs.length === 0 ? (
-                    <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                        <p className="text-muted-foreground">No jobs found matching your filter.</p>
-                    </div>
-                ) : (
-                    filteredJobs.map(job => (
-                        <Card key={job.id} className="hover:shadow-md transition-shadow">
-                            <CardContent className="p-4 sm:p-6">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="space-y-1 flex-1 min-w-0">
-                                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                                            <h3 className="font-semibold text-base sm:text-lg hover:text-primary cursor-pointer truncate" onClick={() => router.push(`/jobs/${job.id}/edit`)}>{job.title}</h3>
-                                            <StatusBadge status={job.status} />
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-muted-foreground">
-                                            <span className="flex items-center gap-1">
-                                                <MapPin className="h-3 w-3" />
-                                                {job.location}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <DollarSign className="h-3 w-3" />
-                                                {job.salaryRange}
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                {job.department}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => router.push(`/jobs/${job.id}/edit`)}>
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </div>
+            {/* Loading State */}
+            {loading && (
+                <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-muted-foreground">Loading jobs...</span>
+                </div>
+            )}
 
-                                <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t gap-4">
-                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <Users className="h-4 w-4 text-muted-foreground" />
-                                            <span className="font-medium">{job.applicantsCount}</span>
-                                            <span className="text-muted-foreground text-sm">Candidates</span>
+            {/* Error State */}
+            {error && !loading && (
+                <Card className="border-red-200 bg-red-50">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 text-red-800">
+                            <AlertCircle className="h-5 w-5" />
+                            <p className="font-medium">{error}</p>
+                        </div>
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="mt-3"
+                            onClick={() => fetchJobs(statusFilter)}
+                        >
+                            Try Again
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Jobs List */}
+            {!loading && !error && (
+                <div className="grid gap-4">
+                    {filteredJobs.length === 0 ? (
+                        <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                            <p className="text-muted-foreground mb-2">
+                                {jobs.length === 0 
+                                    ? "No job postings yet. Create your first job posting to get started!" 
+                                    : "No jobs found matching your filter."
+                                }
+                            </p>
+                            {jobs.length === 0 && (
+                                <Button onClick={() => router.push('/jobs/new')} className="mt-2">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Create First Job
+                                </Button>
+                            )}
+                        </div>
+                    ) : (
+                        filteredJobs.map(job => (
+                            <Card key={job.id} className="hover:shadow-md transition-shadow">
+                                <CardContent className="p-4 sm:p-6">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="space-y-1 flex-1 min-w-0">
+                                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                                                <h3 className="font-semibold text-base sm:text-lg hover:text-primary cursor-pointer truncate" onClick={() => router.push(`/jobs/${job.id}/edit`)}>{job.title}</h3>
+                                                <StatusBadge status={job.status} />
+                                            </div>
+                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-muted-foreground">
+                                                <span className="flex items-center gap-1">
+                                                    <MapPin className="h-3 w-3" />
+                                                    {job.location}
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    <DollarSign className="h-3 w-3" />
+                                                    {job.salaryRange}
+                                                </span>
+                                                <span className="flex items-center gap-1">
+                                                    {job.department}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="text-sm text-muted-foreground">
-                                            Posted {new Date(job.postedAt).toLocaleDateString()}
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="flex-1 sm:flex-initial"
-                                            onClick={() => router.push(`/jobs/${job.id}/applications`)}
-                                        >
-                                            View Applications
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => router.push(`/jobs/${job.id}/edit`)}>
+                                            <MoreHorizontal className="h-4 w-4" />
                                         </Button>
-                                        <Button size="sm" className="flex-1 sm:flex-initial" onClick={() => router.push(`/jobs/${job.id}/edit`)}>Edit</Button>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))
-                )}
-            </div>
+
+                                    <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t gap-4">
+                                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <Users className="h-4 w-4 text-muted-foreground" />
+                                                <span className="font-medium">{job.applicantsCount}</span>
+                                                <span className="text-muted-foreground text-sm">Candidates</span>
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                Posted {new Date(job.postedAt).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="flex-1 sm:flex-initial"
+                                                onClick={() => router.push(`/jobs/${job.id}/applications`)}
+                                            >
+                                                View Applications
+                                            </Button>
+                                            <Button size="sm" className="flex-1 sm:flex-initial" onClick={() => router.push(`/jobs/${job.id}/edit`)}>Edit</Button>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
+                </div>
+            )}
         </div>
     );
 }
