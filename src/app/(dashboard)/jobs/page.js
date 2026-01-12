@@ -77,6 +77,12 @@ export default function JobsPage() {
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
+                        onClick={() => router.push('/jobs/browse')}
+                    >
+                        Browse All Jobs
+                    </Button>
+                    <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => fetchJobs(statusFilter)}
                         disabled={loading}
@@ -194,11 +200,29 @@ export default function JobsPage() {
                                                 variant="outline"
                                                 size="sm"
                                                 className="flex-1 sm:flex-initial"
-                                                onClick={() => router.push(`/jobs/${job.id}/applications`)}
+                                                onClick={() => {
+                                                    try {
+                                                        router.push(`/jobs/${job.id}/applications`);
+                                                    } catch (error) {
+                                                        console.error('Navigation error:', error);
+                                                    }
+                                                }}
                                             >
                                                 View Applications
                                             </Button>
-                                            <Button size="sm" className="flex-1 sm:flex-initial" onClick={() => router.push(`/jobs/${job.id}/edit`)}>Edit</Button>
+                                            <Button 
+                                                size="sm" 
+                                                className="flex-1 sm:flex-initial" 
+                                                onClick={() => {
+                                                    try {
+                                                        router.push(`/jobs/${job.id}/edit`);
+                                                    } catch (error) {
+                                                        console.error('Navigation error:', error);
+                                                    }
+                                                }}
+                                            >
+                                                Edit
+                                            </Button>
                                         </div>
                                     </div>
                                 </CardContent>
