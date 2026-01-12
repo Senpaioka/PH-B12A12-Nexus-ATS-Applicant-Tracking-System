@@ -24,13 +24,16 @@ export async function GET(request) {
       filters.stage = searchParams.get('stage');
     }
     if (searchParams.get('skills')) {
-      filters.skills = searchParams.get('skills').split(',').map(s => s.trim());
+      filters.skills = searchParams.get('skills').split(',').map(s => s.trim()).filter(Boolean);
     }
     if (searchParams.get('location')) {
       filters.location = searchParams.get('location');
     }
     if (searchParams.get('experience')) {
       filters.experience = searchParams.get('experience');
+    }
+    if (searchParams.get('source')) {
+      filters.source = searchParams.get('source');
     }
     if (searchParams.get('search')) {
       filters.search = searchParams.get('search');
@@ -40,7 +43,7 @@ export async function GET(request) {
     
     return NextResponse.json({
       success: true,
-      data: result.candidates,
+      candidates: result.candidates,
       pagination: result.pagination
     });
     
@@ -69,7 +72,7 @@ export async function POST(request) {
     
     return NextResponse.json({
       success: true,
-      data: candidate,
+      candidate: candidate,
       message: 'Candidate created successfully'
     }, { status: 201 });
     

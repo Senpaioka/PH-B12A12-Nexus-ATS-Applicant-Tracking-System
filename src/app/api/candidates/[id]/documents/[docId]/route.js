@@ -12,7 +12,7 @@ import { documentService } from '@/lib/candidates/document-service.js';
  */
 export async function GET(request, { params }) {
   try {
-    const { id: candidateId, docId } = params;
+    const { id: candidateId, docId } = await params;
 
     const documentData = await documentService.getDocument(candidateId, docId);
 
@@ -52,7 +52,7 @@ export async function GET(request, { params }) {
  */
 export async function DELETE(request, { params }) {
   try {
-    const { id: candidateId, docId } = params;
+    const { id: candidateId, docId } = await params;
     
     // Get deletedBy from request body or query params
     const url = new URL(request.url);

@@ -57,11 +57,11 @@ describe('Pipeline Stage Management Integration Tests', () => {
   test('should have all required pipeline stages', () => {
     const stages = Object.values(PIPELINE_STAGES);
     
-    expect(stages).toContain('Applied');
-    expect(stages).toContain('Screening');
-    expect(stages).toContain('Interview');
-    expect(stages).toContain('Offer');
-    expect(stages).toContain('Hired');
+    expect(stages).toContain('applied');
+    expect(stages).toContain('screening');
+    expect(stages).toContain('interview');
+    expect(stages).toContain('offer');
+    expect(stages).toContain('hired');
     expect(stages).toHaveLength(5);
   });
 });

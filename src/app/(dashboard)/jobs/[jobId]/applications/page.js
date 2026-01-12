@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Search, MoreVertical, Mail, Calendar, Briefcase, Users, AlertCircle, Loader2, ExternalLink, Phone, Linkedin } from 'lucide-react';
+import { ArrowLeft, Search, MoreVertical, Mail, Calendar, Briefcase, Users, AlertCircle, Loader2, ExternalLink, Phone, Linkedin, UserPlus } from 'lucide-react';
 import { Button, Input, Card, CardHeader, CardTitle, CardContent, Badge, Select } from '@/components/ui/common';
 
 // Applications List Component
@@ -10,6 +10,7 @@ function ApplicationsList({ jobId }) {
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [convertingIds, setConvertingIds] = useState(new Set());
 
     const fetchApplications = async () => {
         try {
@@ -29,6 +30,45 @@ function ApplicationsList({ jobId }) {
             setError('Network error. Please check your connection and try again.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleAddToPipeline = async (application) => {
+        try {
+            setConvertingIds(prev => new Set([...prev, application.id]));
+
+            const response = await fetch(`/api/jobs/${jobId}/applications/${application.id}/convert`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Show success message with candidate details
+                const candidateName = data.candidate?.name || `Application #${application.id.slice(-8)}`;
+                alert(`✅ Success! ${candidateName} has been added to the candidates pipeline in the "Applied" stage. You can now manage their interview process from the candidates page.`);
+                await fetchApplications();
+            } else {
+                // Show specific error message
+                const errorMessage = data.error?.message || 'Failed to add to pipeline';
+                if (data.error?.code === 'CANDIDATE_EXISTS') {
+                    alert(`⚠️ ${errorMessage}\n\nThis person is already in your candidates pipeline. You can find them on the candidates page.`);
+                } else {
+                    alert(`❌ ${errorMessage}\n\nPlease try again or contact support if the problem persists.`);
+                }
+            }
+        } catch (err) {
+            console.error('Error converting application:', err);
+            alert('❌ Network error occurred while adding to pipeline. Please check your connection and try again.');
+        } finally {
+            setConvertingIds(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(application.id);
+                return newSet;
+            });
         }
     };
 
@@ -97,6 +137,7 @@ function ApplicationsList({ jobId }) {
                             <Badge variant={
                                 application.status === 'Hired' ? 'success' :
                                 application.status === 'Rejected' ? 'destructive' :
+                                application.status === 'Converted' ? 'default' :
                                 application.status === 'Offer' ? 'default' :
                                 'secondary'
                             } className="text-sm px-2.5 py-0.5">
@@ -130,6 +171,21 @@ function ApplicationsList({ jobId }) {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <Button 
+                            variant="default" 
+                            size="sm"
+                            onClick={() => handleAddToPipeline(application)}
+                            disabled={convertingIds.has(application.id) || application.status === 'Converted'}
+                            className="flex items-center gap-2"
+                        >
+                            {convertingIds.has(application.id) ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <UserPlus className="h-4 w-4" />
+                            )}
+                            {convertingIds.has(application.id) ? 'Adding...' : 
+                             application.status === 'Converted' ? 'Already Added' : 'Add to Pipeline'}
+                        </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                             <MoreVertical className="h-4 w-4" />
                         </Button>

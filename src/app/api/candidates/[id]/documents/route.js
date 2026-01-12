@@ -13,7 +13,7 @@ import { DOCUMENT_TYPES } from '@/lib/candidates/candidate-models.js';
  */
 export async function POST(request, { params }) {
   try {
-    const { id: candidateId } = params;
+    const { id: candidateId } = await params;
 
     // Parse multipart form data
     const formData = await request.formData();
@@ -76,7 +76,7 @@ export async function POST(request, { params }) {
  */
 export async function GET(request, { params }) {
   try {
-    const { id: candidateId } = params;
+    const { id: candidateId } = await params;
 
     const documents = await documentService.listDocuments(candidateId);
 

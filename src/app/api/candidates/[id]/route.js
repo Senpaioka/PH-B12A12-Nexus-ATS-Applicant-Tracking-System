@@ -11,7 +11,7 @@ import { candidateService } from '@/lib/candidates/candidate-service';
  */
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     const candidate = await candidateService.getCandidateById(id);
     
@@ -52,7 +52,7 @@ export async function GET(request, { params }) {
  */
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const updateData = await request.json();
     
     // TODO: Get user ID from session/auth
@@ -114,7 +114,7 @@ export async function PUT(request, { params }) {
  */
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // TODO: Get user ID from session/auth
     const userId = 'system'; // Placeholder

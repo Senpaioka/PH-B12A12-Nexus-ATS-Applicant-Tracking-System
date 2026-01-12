@@ -9,11 +9,11 @@ import { ObjectId } from 'mongodb';
  * Pipeline stages enum
  */
 export const PIPELINE_STAGES = {
-  APPLIED: 'Applied',
-  SCREENING: 'Screening', 
-  INTERVIEW: 'Interview',
-  OFFER: 'Offer',
-  HIRED: 'Hired'
+  APPLIED: 'applied',
+  SCREENING: 'screening', 
+  INTERVIEW: 'interview',
+  OFFER: 'offer',
+  HIRED: 'hired'
 };
 
 /**
@@ -87,7 +87,9 @@ export function createCandidateDocument(candidateData) {
       stageHistory: [{
         stage: candidateData.currentStage || PIPELINE_STAGES.APPLIED,
         timestamp: now,
-        updatedBy: candidateData.createdBy ? new ObjectId(candidateData.createdBy) : null,
+        updatedBy: candidateData.createdBy && ObjectId.isValid(candidateData.createdBy) 
+          ? new ObjectId(candidateData.createdBy) 
+          : null,
         notes: candidateData.initialNotes || ''
       }],
       appliedDate: candidateData.appliedDate ? new Date(candidateData.appliedDate) : now
@@ -98,7 +100,9 @@ export function createCandidateDocument(candidateData) {
     metadata: {
       createdAt: now,
       updatedAt: now,
-      createdBy: candidateData.createdBy ? new ObjectId(candidateData.createdBy) : null,
+      createdBy: candidateData.createdBy && ObjectId.isValid(candidateData.createdBy) 
+        ? new ObjectId(candidateData.createdBy) 
+        : null,
       isActive: true
     }
   };
@@ -117,7 +121,9 @@ export function createStageHistoryEntry(fromStage, toStage, updatedBy, notes = '
     fromStage,
     toStage,
     timestamp: new Date(),
-    updatedBy: updatedBy ? new ObjectId(updatedBy) : null,
+    updatedBy: updatedBy && ObjectId.isValid(updatedBy) 
+      ? new ObjectId(updatedBy) 
+      : null,
     notes: notes?.trim() || ''
   };
 }
@@ -137,7 +143,9 @@ export function createDocumentMetadata(documentData) {
     uploadDate: new Date(),
     documentType: documentData.documentType || DOCUMENT_TYPES.OTHER,
     filePath: documentData.filePath,
-    uploadedBy: documentData.uploadedBy ? new ObjectId(documentData.uploadedBy) : null,
+    uploadedBy: documentData.uploadedBy && ObjectId.isValid(documentData.uploadedBy) 
+      ? new ObjectId(documentData.uploadedBy) 
+      : null,
     isActive: true
   };
 }
@@ -151,7 +159,9 @@ export function createNoteEntry(noteData) {
   return {
     _id: new ObjectId(),
     content: noteData.content?.trim(),
-    createdBy: noteData.createdBy ? new ObjectId(noteData.createdBy) : null,
+    createdBy: noteData.createdBy && ObjectId.isValid(noteData.createdBy) 
+      ? new ObjectId(noteData.createdBy) 
+      : null,
     createdAt: new Date(),
     type: noteData.type || NOTE_TYPES.GENERAL
   };
@@ -164,7 +174,9 @@ export function createNoteEntry(noteData) {
  */
 export function createJobApplicationEntry(applicationData) {
   return {
-    jobId: new ObjectId(applicationData.jobId),
+    jobId: applicationData.jobId && ObjectId.isValid(applicationData.jobId) 
+      ? new ObjectId(applicationData.jobId) 
+      : null,
     appliedDate: applicationData.appliedDate ? new Date(applicationData.appliedDate) : new Date(),
     status: applicationData.status || 'active',
     source: applicationData.source || APPLICATION_SOURCES.OTHER

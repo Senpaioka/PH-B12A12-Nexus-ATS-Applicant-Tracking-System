@@ -329,6 +329,18 @@ export function normalizePhoneNumber(phone) {
   // Remove all non-digit characters except +
   let normalized = phone.replace(/[^\d+]/g, '');
   
+  // Handle multiple plus signs - keep only the first one
+  if (normalized.includes('+')) {
+    const firstPlusIndex = normalized.indexOf('+');
+    const digitsAfterPlus = normalized.substring(firstPlusIndex + 1).replace(/\+/g, '');
+    normalized = '+' + digitsAfterPlus;
+  }
+  
+  // Handle edge cases - if only + or no digits, return empty
+  if (normalized === '+' || !/\d/.test(normalized)) {
+    return '';
+  }
+  
   // If it starts with +1, keep it; if it starts with 1 and has 11 digits, add +
   if (normalized.startsWith('+1')) {
     return normalized;

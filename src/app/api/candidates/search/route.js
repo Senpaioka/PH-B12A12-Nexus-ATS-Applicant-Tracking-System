@@ -15,7 +15,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     
     // Extract search parameters
-    const query = searchParams.get('q') || '';
+    const query = searchParams.get('search') || searchParams.get('q') || '';
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 20;
     
@@ -70,7 +70,10 @@ export async function GET(request) {
 
     return NextResponse.json({
       success: true,
-      ...results
+      candidates: results.results,
+      pagination: results.pagination,
+      query: results.query,
+      filters: results.filters
     });
 
   } catch (error) {
@@ -78,13 +81,21 @@ export async function GET(request) {
 
     if (error.name === 'SearchServiceError') {
       return NextResponse.json(
-        { error: error.message },
+        { 
+          success: false,
+          error: error.message,
+          message: error.message 
+        },
         { status: error.statusCode }
       );
     }
 
     return NextResponse.json(
-      { error: 'Failed to search candidates' },
+      { 
+        success: false,
+        error: 'Failed to search candidates',
+        message: error.message 
+      },
       { status: 500 }
     );
   }

@@ -12,7 +12,7 @@ import { documentService } from '@/lib/candidates/document-service.js';
  */
 export async function GET(request, { params }) {
   try {
-    const { id: candidateId } = params;
+    const { id: candidateId } = await params;
 
     const stats = await documentService.getDocumentStats(candidateId);
 
