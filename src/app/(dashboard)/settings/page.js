@@ -21,6 +21,8 @@ import {
     Textarea
 } from '@/components/ui/common';
 import { DeleteAccountDialog } from '@/components/ui/delete-account-dialog';
+import { InviteMemberDialog } from '@/components/ui/invite-member-dialog';
+import { TeamManagementTab } from '@/components/team-management-tab';
 
 export default function SettingsPage() {
     const { data: session } = useSession();
@@ -43,12 +45,12 @@ export default function SettingsPage() {
     const [successMessage, setSuccessMessage] = useState('');
     const [bioValidation, setBioValidation] = useState(null);
     const [photoUrlValidation, setPhotoUrlValidation] = useState(null);
-    
+
     // Delete account state
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [accountData, setAccountData] = useState(null);
     const [isLoadingAccountData, setIsLoadingAccountData] = useState(false);
-    
+
     // Password change state
     const [passwordData, setPasswordData] = useState({
         canChangePassword: false,
@@ -95,30 +97,30 @@ export default function SettingsPage() {
         if (formData.photoURL && formData.photoURL.trim()) {
             // More flexible URL validation that accepts Google profile URLs and other image services
             const urlRegex = /^https?:\/\/.+/i;
-            
+
             if (!urlRegex.test(formData.photoURL)) {
-                setPhotoUrlValidation({ 
-                    isValid: false, 
-                    message: 'URL must be a valid HTTPS URL' 
+                setPhotoUrlValidation({
+                    isValid: false,
+                    message: 'URL must be a valid HTTPS URL'
                 });
                 return;
             }
-            
+
             // Check for common image hosting domains or file extensions
-            const isImageUrl = 
+            const isImageUrl =
                 formData.photoURL.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i) || // Traditional image URLs with extensions
                 formData.photoURL.includes('googleusercontent.com') || // Google profile images
                 formData.photoURL.includes('gravatar.com') || // Gravatar images
                 formData.photoURL.includes('imgur.com') || // Imgur images
                 formData.photoURL.includes('cloudinary.com') || // Cloudinary images
                 formData.photoURL.includes('amazonaws.com'); // AWS S3 images
-            
+
             if (isImageUrl) {
                 setPhotoUrlValidation({ isValid: true, message: 'Valid image URL' });
             } else {
-                setPhotoUrlValidation({ 
-                    isValid: false, 
-                    message: 'URL must be from a recognized image service or have a valid image file extension' 
+                setPhotoUrlValidation({
+                    isValid: false,
+                    message: 'URL must be from a recognized image service or have a valid image file extension'
                 });
             }
         } else {
@@ -224,10 +226,10 @@ export default function SettingsPage() {
             if (data.success) {
                 setProfile(data.data);
                 setSuccessMessage('Profile updated successfully!');
-                
+
                 // Dispatch event to update navbar profile
                 window.dispatchEvent(new CustomEvent('profileUpdated'));
-                
+
                 // Clear success message after 3 seconds
                 setTimeout(() => {
                     setSuccessMessage('');
@@ -270,7 +272,7 @@ export default function SettingsPage() {
         try {
             const response = await fetch('/api/user/delete-account');
             const data = await response.json();
-            
+
             if (data.success) {
                 setAccountData(data.data);
                 setShowDeleteDialog(true);
@@ -301,9 +303,9 @@ export default function SettingsPage() {
 
             if (data.success) {
                 // Sign out the user and redirect to home page
-                await signOut({ 
+                await signOut({
                     callbackUrl: '/?message=account-deleted',
-                    redirect: true 
+                    redirect: true
                 });
             } else {
                 throw new Error(data.error || 'Failed to delete account');
@@ -320,7 +322,7 @@ export default function SettingsPage() {
             ...prev,
             [field]: value
         }));
-        
+
         // Clear errors when user starts typing
         if (passwordErrors[field]) {
             setPasswordErrors(prev => ({
@@ -328,7 +330,7 @@ export default function SettingsPage() {
                 [field]: ''
             }));
         }
-        
+
         // Clear general success message
         if (passwordSuccess) {
             setPasswordSuccess('');
@@ -399,7 +401,7 @@ export default function SettingsPage() {
                     newPassword: '',
                     confirmPassword: ''
                 });
-                
+
                 // Clear success message after 5 seconds
                 setTimeout(() => {
                     setPasswordSuccess('');
@@ -485,9 +487,9 @@ export default function SettingsPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="h-20 w-20 rounded-full bg-secondary flex items-center justify-center text-2xl font-bold text-secondary-foreground overflow-hidden">
                                             {formData.photoURL ? (
-                                                <img 
-                                                    src={formData.photoURL} 
-                                                    alt="Profile" 
+                                                <img
+                                                    src={formData.photoURL}
+                                                    alt="Profile"
                                                     className="w-full h-full object-cover"
                                                     crossOrigin="anonymous"
                                                     referrerPolicy="no-referrer"
@@ -499,18 +501,18 @@ export default function SettingsPage() {
                                             ) : (
                                                 (profile.name || session?.user?.name || 'U').charAt(0).toUpperCase()
                                             )}
-                                            <div className="w-full h-full items-center justify-center text-2xl font-bold text-secondary-foreground" style={{display: formData.photoURL ? 'none' : 'flex'}}>
+                                            <div className="w-full h-full items-center justify-center text-2xl font-bold text-secondary-foreground" style={{ display: formData.photoURL ? 'none' : 'flex' }}>
                                                 {(profile.name || session?.user?.name || 'U').charAt(0).toUpperCase()}
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <Separator />
-                                    
+
                                     <div className="space-y-2">
                                         <Label htmlFor="name">Full Name</Label>
-                                        <Input 
-                                            id="name" 
+                                        <Input
+                                            id="name"
                                             value={formData.name}
                                             onChange={e => setFormData({ ...formData, name: e.target.value })}
                                             placeholder="Enter your full name"
@@ -520,12 +522,12 @@ export default function SettingsPage() {
                                             <p className="text-sm text-red-600">{errors.name}</p>
                                         )}
                                     </div>
-                                    
+
                                     <div className="space-y-2">
                                         <Label htmlFor="email">Email</Label>
-                                        <Input 
-                                            id="email" 
-                                            type="email" 
+                                        <Input
+                                            id="email"
+                                            type="email"
                                             value={profile.email || session?.user?.email || ''}
                                             disabled
                                             className="bg-muted"
@@ -536,8 +538,8 @@ export default function SettingsPage() {
                                     <div className="space-y-2">
                                         <Label htmlFor="photoURL">Profile Photo URL</Label>
                                         <div className="relative">
-                                            <Input 
-                                                id="photoURL" 
+                                            <Input
+                                                id="photoURL"
                                                 value={formData.photoURL}
                                                 onChange={e => setFormData({ ...formData, photoURL: e.target.value })}
                                                 placeholder="https://example.com/photo.jpg"
@@ -563,7 +565,7 @@ export default function SettingsPage() {
                                             Supported: Image URLs with extensions (JPG, PNG, etc.) or from recognized services (Google, Gravatar, etc.)
                                         </p>
                                     </div>
-                                    
+
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
                                             <Label htmlFor="bio">Bio</Label>
@@ -578,8 +580,8 @@ export default function SettingsPage() {
                                                 )}
                                             </div>
                                         </div>
-                                        <Textarea 
-                                            id="bio" 
+                                        <Textarea
+                                            id="bio"
                                             value={formData.bio}
                                             onChange={e => setFormData({ ...formData, bio: e.target.value })}
                                             placeholder="Tell us about yourself (300-500 words)"
@@ -592,7 +594,7 @@ export default function SettingsPage() {
                                             Write a brief biography about yourself (300-500 words required)
                                         </p>
                                     </div>
-                                    
+
                                     <div className="flex justify-end">
                                         <Button onClick={handleSaveProfile} disabled={isSaving}>
                                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -653,40 +655,7 @@ export default function SettingsPage() {
                         </TabsContent>
 
                         <TabsContent value="team" className="space-y-6">
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between">
-                                    <CardTitle>Team Members</CardTitle>
-                                    <Button size="sm">
-                                        <Users className="mr-2 h-4 w-4" />
-                                        Invite Member
-                                    </Button>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-6">
-                                        {[
-                                            { name: "Alex Chen", role: "Admin", email: "alex@nexus.co", status: "Active" },
-                                            { name: "Sarah Smith", role: "Recruiter", email: "sarah@nexus.co", status: "Active" },
-                                            { name: "Mike Johnson", role: "Interviewer", email: "mike@nexus.co", status: "Invited" },
-                                        ].map((member, i) => (
-                                            <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                                <div className="flex items-center space-x-4">
-                                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium flex-shrink-0">
-                                                        {member.name.split(' ').map(n => n[0]).join('')}
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-medium leading-none truncate">{member.name}</p>
-                                                        <p className="text-sm text-muted-foreground truncate">{member.email}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center justify-between sm:justify-end space-x-2">
-                                                    <span className="text-xs text-muted-foreground mr-2">{member.role}</span>
-                                                    <Button variant="outline" size="sm">Edit</Button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <TeamManagementTab session={session} />
                         </TabsContent>
 
                         <TabsContent value="security" className="space-y-6">
@@ -726,9 +695,9 @@ export default function SettingsPage() {
 
                                         <div className="space-y-2">
                                             <Label htmlFor="current">Current Password</Label>
-                                            <Input 
-                                                id="current" 
-                                                type="password" 
+                                            <Input
+                                                id="current"
+                                                type="password"
                                                 value={passwordForm.currentPassword}
                                                 onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
                                                 className={passwordErrors.currentPassword ? 'border-red-500' : ''}
@@ -740,9 +709,9 @@ export default function SettingsPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="new">New Password</Label>
-                                            <Input 
-                                                id="new" 
-                                                type="password" 
+                                            <Input
+                                                id="new"
+                                                type="password"
                                                 value={passwordForm.newPassword}
                                                 onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
                                                 className={passwordErrors.newPassword ? 'border-red-500' : ''}
@@ -757,9 +726,9 @@ export default function SettingsPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="confirm">Confirm New Password</Label>
-                                            <Input 
-                                                id="confirm" 
-                                                type="password" 
+                                            <Input
+                                                id="confirm"
+                                                type="password"
                                                 value={passwordForm.confirmPassword}
                                                 onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
                                                 className={passwordErrors.confirmPassword ? 'border-red-500' : ''}
@@ -770,7 +739,7 @@ export default function SettingsPage() {
                                             )}
                                         </div>
                                         <div className="flex justify-end">
-                                            <Button 
+                                            <Button
                                                 onClick={handlePasswordSubmit}
                                                 disabled={isChangingPassword}
                                             >
@@ -793,7 +762,7 @@ export default function SettingsPage() {
                                                 <h4 className="font-medium text-blue-900">OAuth Authentication</h4>
                                             </div>
                                             <p className="text-sm text-blue-800">
-                                                You signed in using {passwordData.provider === 'google' ? 'Google' : 'OAuth'}. 
+                                                You signed in using {passwordData.provider === 'google' ? 'Google' : 'OAuth'}.
                                                 Password changes are managed through your {passwordData.provider === 'google' ? 'Google account' : 'OAuth provider'}.
                                             </p>
                                             {passwordData.provider === 'google' && (
@@ -822,8 +791,8 @@ export default function SettingsPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    <Button 
-                                        variant="destructive" 
+                                    <Button
+                                        variant="destructive"
                                         onClick={handleDeleteAccountClick}
                                         disabled={isLoadingAccountData}
                                     >

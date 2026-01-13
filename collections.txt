@@ -1,0 +1,10 @@
+Connecting...
+Connected.
+Collections:
+team_invitations
+users
+candidates
+interviews
+team_members
+applications
+jobs

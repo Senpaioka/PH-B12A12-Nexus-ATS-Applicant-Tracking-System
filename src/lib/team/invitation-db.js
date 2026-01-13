@@ -5,8 +5,8 @@
 
 import { getCollection } from '../mongodb.js';
 import { ObjectId } from 'mongodb';
-import { 
-  INVITATION_INDEXES, 
+import {
+  INVITATION_INDEXES,
   TEAM_MEMBER_INDEXES,
   INVITATION_STATUS,
   MEMBER_STATUS,
@@ -30,7 +30,7 @@ export async function initializeTeamCollections() {
 
     // Initialize invitations collection
     const invitationsCollection = await getCollection(COLLECTIONS.INVITATIONS);
-    
+
     // Create indexes for invitations
     for (const indexSpec of INVITATION_INDEXES) {
       try {
@@ -45,7 +45,7 @@ export async function initializeTeamCollections() {
 
     // Initialize team members collection
     const membersCollection = await getCollection(COLLECTIONS.MEMBERS);
-    
+
     // Create indexes for team members
     for (const indexSpec of TEAM_MEMBER_INDEXES) {
       try {
@@ -74,14 +74,14 @@ export async function createInvitation(invitationDocument) {
   try {
     const collection = await getCollection(COLLECTIONS.INVITATIONS);
     const result = await collection.insertOne(invitationDocument);
-    
+
     return {
       ...invitationDocument,
       _id: result.insertedId
     };
   } catch (error) {
     console.error('Error creating invitation:', error);
-    
+
     // Handle duplicate key errors
     if (error.code === 11000) {
       if (error.message.includes('email')) {
@@ -91,7 +91,7 @@ export async function createInvitation(invitationDocument) {
         throw new Error('Token collision occurred, please try again');
       }
     }
-    
+
     throw new Error(`Failed to create invitation: ${error.message}`);
   }
 }
@@ -120,7 +120,7 @@ export async function findInvitationByToken(token) {
 export async function findInvitationByEmail(email, organizationId) {
   try {
     const collection = await getCollection(COLLECTIONS.INVITATIONS);
-    return await collection.findOne({ 
+    return await collection.findOne({
       email: email.toLowerCase().trim(),
       organizationId: new ObjectId(organizationId)
     });
@@ -140,7 +140,7 @@ export async function findInvitationByEmail(email, organizationId) {
 export async function getInvitationsForOrganization(organizationId, filters = {}, pagination = {}) {
   try {
     const collection = await getCollection(COLLECTIONS.INVITATIONS);
-    
+
     // Build query
     const query = {
       organizationId: new ObjectId(organizationId),
@@ -184,7 +184,7 @@ export async function getInvitationsForOrganization(organizationId, filters = {}
 export async function updateInvitationStatus(invitationId, status, additionalData = {}) {
   try {
     const collection = await getCollection(COLLECTIONS.INVITATIONS);
-    
+
     const updateData = {
       status,
       ...additionalData
@@ -219,7 +219,7 @@ export async function updateInvitationStatus(invitationId, status, additionalDat
 export async function markExpiredInvitations(referenceDate = new Date()) {
   try {
     const collection = await getCollection(COLLECTIONS.INVITATIONS);
-    
+
     const result = await collection.updateMany(
       {
         status: INVITATION_STATUS.PENDING,
@@ -247,7 +247,7 @@ export async function deleteOldExpiredInvitations(daysOld = 30) {
     const collection = await getCollection(COLLECTIONS.INVITATIONS);
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
-    
+
     const result = await collection.deleteMany({
       status: INVITATION_STATUS.EXPIRED,
       expiresAt: { $lt: cutoffDate }
@@ -257,6 +257,26 @@ export async function deleteOldExpiredInvitations(daysOld = 30) {
   } catch (error) {
     console.error('Error deleting old expired invitations:', error);
     throw new Error(`Failed to delete old invitations: ${error.message}`);
+  }
+}
+/**
+ * Deletes an invitation by ID and organization
+ * @param {ObjectId} invitationId - Invitation ID
+ * @param {ObjectId} organizationId - Organization ID
+ * @returns {Promise<boolean>} True if deleted, false if not found
+ */
+export async function deleteInvitation(invitationId, organizationId) {
+  try {
+    const collection = await getCollection(COLLECTIONS.INVITATIONS);
+    const result = await collection.deleteOne({
+      _id: new ObjectId(invitationId),
+      organizationId: new ObjectId(organizationId)
+    });
+
+    return result.deletedCount > 0;
+  } catch (error) {
+    console.error('Error deleting invitation:', error);
+    throw new Error(`Failed to delete invitation: ${error.message}`);
   }
 }
 
@@ -269,19 +289,19 @@ export async function createTeamMember(memberDocument) {
   try {
     const collection = await getCollection(COLLECTIONS.MEMBERS);
     const result = await collection.insertOne(memberDocument);
-    
+
     return {
       ...memberDocument,
       _id: result.insertedId
     };
   } catch (error) {
     console.error('Error creating team member:', error);
-    
+
     // Handle duplicate key errors
     if (error.code === 11000) {
       throw new Error('This user is already a member of this organization');
     }
-    
+
     throw new Error(`Failed to create team member: ${error.message}`);
   }
 }
@@ -295,7 +315,7 @@ export async function createTeamMember(memberDocument) {
 export async function findTeamMember(userId, organizationId) {
   try {
     const collection = await getCollection(COLLECTIONS.MEMBERS);
-    return await collection.findOne({ 
+    return await collection.findOne({
       userId: new ObjectId(userId),
       organizationId: new ObjectId(organizationId)
     });
@@ -315,8 +335,8 @@ export async function isExistingTeamMember(email, organizationId) {
   try {
     // Get users collection to find user by email
     const usersCollection = await getCollection('users');
-    const user = await usersCollection.findOne({ 
-      email: email.toLowerCase().trim() 
+    const user = await usersCollection.findOne({
+      email: email.toLowerCase().trim()
     });
 
     if (!user) {
@@ -342,7 +362,7 @@ export async function isExistingTeamMember(email, organizationId) {
 export async function getTeamMembersForOrganization(organizationId, filters = {}, pagination = {}) {
   try {
     const collection = await getCollection(COLLECTIONS.MEMBERS);
-    
+
     // Build query
     const query = {
       organizationId: new ObjectId(organizationId),
@@ -385,10 +405,10 @@ export async function getTeamMembersForOrganization(organizationId, filters = {}
 export async function updateTeamMember(memberId, updateData) {
   try {
     const collection = await getCollection(COLLECTIONS.MEMBERS);
-    
+
     const result = await collection.updateOne(
       { _id: new ObjectId(memberId) },
-      { 
+      {
         $set: {
           ...updateData,
           'metadata.updatedAt': new Date()
@@ -416,13 +436,13 @@ export async function updateTeamMember(memberId, updateData) {
 export async function updateMemberLastActive(userId, organizationId) {
   try {
     const collection = await getCollection(COLLECTIONS.MEMBERS);
-    
+
     const result = await collection.updateOne(
-      { 
+      {
         userId: new ObjectId(userId),
         organizationId: new ObjectId(organizationId)
       },
-      { 
+      {
         $set: {
           'metadata.lastActiveAt': new Date(),
           'metadata.updatedAt': new Date()
@@ -446,10 +466,10 @@ export async function updateMemberLastActive(userId, organizationId) {
 export async function removeTeamMember(memberId) {
   try {
     const collection = await getCollection(COLLECTIONS.MEMBERS);
-    
+
     const result = await collection.updateOne(
       { _id: new ObjectId(memberId) },
-      { 
+      {
         $set: {
           status: MEMBER_STATUS.INACTIVE,
           'metadata.isActive': false,

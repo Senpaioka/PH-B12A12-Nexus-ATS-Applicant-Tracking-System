@@ -32,7 +32,7 @@ export async function connectToDatabase() {
   try {
     // Validate environment variables
     const config = getEnvConfig();
-    
+
     // Return existing connection if available
     if (client && db) {
       // Test the connection to ensure it's still alive
@@ -41,26 +41,26 @@ export async function connectToDatabase() {
     }
 
     console.log('Establishing new MongoDB connection...');
-    
+
     // Create new MongoDB client with connection pooling
     client = new MongoClient(config.MONGODB_URI, connectionOptions);
-    
+
     // Connect to MongoDB
     await client.connect();
-    
+
     // Test the connection
     await client.db('admin').command({ ping: 1 });
-    
+
     // Get database instance
     db = client.db(config.DB_NAME);
-    
+
     console.log('Successfully connected to MongoDB Atlas');
-    
+
     // Set up connection event listeners
     client.on('error', (error) => {
       console.error('MongoDB connection error:', error);
     });
-    
+
     client.on('close', () => {
       console.log('MongoDB connection closed');
       client = null;
@@ -68,10 +68,10 @@ export async function connectToDatabase() {
     });
 
     return db;
-    
+
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error);
-    
+
     // Clean up on connection failure
     if (client) {
       try {
@@ -82,7 +82,7 @@ export async function connectToDatabase() {
       client = null;
       db = null;
     }
-    
+
     throw new Error(`Database connection failed: ${error.message}`);
   }
 }
@@ -98,6 +98,34 @@ export async function getUsersCollection() {
   } catch (error) {
     console.error('Failed to get users collection:', error);
     throw new Error(`Failed to access users collection: ${error.message}`);
+  }
+}
+
+/**
+ * Gets the invitations collection with proper error handling
+ * @returns {Promise<Collection>} MongoDB invitations collection
+ */
+export async function getInvitationsCollection() {
+  try {
+    const database = await connectToDatabase();
+    return database.collection('invitations');
+  } catch (error) {
+    console.error('Failed to get invitations collection:', error);
+    throw new Error(`Failed to access invitations collection: ${error.message}`);
+  }
+}
+
+/**
+ * Gets the team members collection with proper error handling
+ * @returns {Promise<Collection>} MongoDB team members collection
+ */
+export async function getTeamMembersCollection() {
+  try {
+    const database = await connectToDatabase();
+    return database.collection('team_members');
+  } catch (error) {
+    console.error('Failed to get team members collection:', error);
+    throw new Error(`Failed to access team members collection: ${error.message}`);
   }
 }
 
@@ -143,7 +171,7 @@ export async function isConnectionHealthy() {
     if (!client || !db) {
       return false;
     }
-    
+
     await client.db('admin').command({ ping: 1 });
     return true;
   } catch (error) {
