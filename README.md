@@ -7,7 +7,7 @@ A modern, full-featured Applicant Tracking System (ATS) built with Next.js, Mong
 ![MongoDB](https://img.shields.io/badge/MongoDB-6.12.0-green)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.0-blue)
 
-Preview: 
+Preview: https://ph-b12-a13-nexus-ats-applicant-trac.vercel.app
 
 ## 🚀 Features
 
