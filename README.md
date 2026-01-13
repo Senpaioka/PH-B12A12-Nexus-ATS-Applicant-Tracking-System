@@ -7,6 +7,8 @@ A modern, full-featured Applicant Tracking System (ATS) built with Next.js, Mong
 ![MongoDB](https://img.shields.io/badge/MongoDB-6.12.0-green)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.0-blue)
 
+Preview: 
+
 ## 🚀 Features
 
 ### 📊 **Dashboard & Analytics**
@@ -65,6 +67,12 @@ A modern, full-featured Applicant Tracking System (ATS) built with Next.js, Mong
 - **Jest** - JavaScript testing framework
 - **Fast-check** - Property-based testing library
 - **MongoDB Memory Server** - In-memory database for testing
+
+## 🔐 Credentials
+```
+email: admin@mail.com
+password: Sakura@26
+```
 
 ## 📁 Project Structure
 
