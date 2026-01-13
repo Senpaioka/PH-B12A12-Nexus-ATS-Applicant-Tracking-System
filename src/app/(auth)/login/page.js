@@ -30,6 +30,8 @@ export default function LoginPage() {
             setSuccessMessage('Account created successfully! Please sign in with your credentials.');
         } else if (message === 'email-verified') {
             setSuccessMessage('Email verified successfully! You can now sign in.');
+        } else if (message === 'account-deleted') {
+            setSuccessMessage('Your account has been successfully deleted. Thank you for using Nexus ATS.');
         }
 
         if (error) {

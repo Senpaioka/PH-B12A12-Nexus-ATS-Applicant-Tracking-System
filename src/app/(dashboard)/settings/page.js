@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { User, Bell, Shield, Users, Save, Building, Upload, Loader2, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { User, Bell, Shield, Users, Save, Building, Upload, Loader2, CheckCircle, XCircle, AlertCircle, Trash2 } from 'lucide-react';
 import {
     Button,
     Input,
@@ -19,9 +20,11 @@ import {
     TabsContent,
     Textarea
 } from '@/components/ui/common';
+import { DeleteAccountDialog } from '@/components/ui/delete-account-dialog';
 
 export default function SettingsPage() {
     const { data: session } = useSession();
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState('general');
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -40,6 +43,11 @@ export default function SettingsPage() {
     const [successMessage, setSuccessMessage] = useState('');
     const [bioValidation, setBioValidation] = useState(null);
     const [photoUrlValidation, setPhotoUrlValidation] = useState(null);
+    
+    // Delete account state
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [accountData, setAccountData] = useState(null);
+    const [isLoadingAccountData, setIsLoadingAccountData] = useState(false);
 
     // Load profile data on component mount
     useEffect(() => {
@@ -219,6 +227,56 @@ export default function SettingsPage() {
         if (bioValidation.isTooShort) return <AlertCircle className="h-4 w-4 text-yellow-500" />;
         if (bioValidation.isTooLong) return <XCircle className="h-4 w-4 text-red-500" />;
         return null;
+    };
+
+    // Delete account functions
+    const handleDeleteAccountClick = async () => {
+        setIsLoadingAccountData(true);
+        try {
+            const response = await fetch('/api/user/delete-account');
+            const data = await response.json();
+            
+            if (data.success) {
+                setAccountData(data.data);
+                setShowDeleteDialog(true);
+            } else {
+                setErrors({ general: 'Failed to load account information. Please try again.' });
+            }
+        } catch (error) {
+            console.error('Error loading account data:', error);
+            setErrors({ general: 'Failed to load account information. Please try again.' });
+        } finally {
+            setIsLoadingAccountData(false);
+        }
+    };
+
+    const handleDeleteAccountConfirm = async (confirmationText) => {
+        try {
+            const response = await fetch('/api/user/delete-account', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    confirmationText,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Sign out the user and redirect to home page
+                await signOut({ 
+                    callbackUrl: '/?message=account-deleted',
+                    redirect: true 
+                });
+            } else {
+                throw new Error(data.error || 'Failed to delete account');
+            }
+        } catch (error) {
+            console.error('Error deleting account:', error);
+            throw error;
+        }
     };
 
     if (isLoading) {
@@ -524,16 +582,40 @@ export default function SettingsPage() {
                                     <CardTitle className="text-destructive">Danger Zone</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <p className="text-sm text-muted-foreground">
-                                        Permanently delete your account and all of your data from our servers. This action cannot be undone.
-                                    </p>
-                                    <Button variant="destructive">Delete Account</Button>
+                                    <div className="space-y-3">
+                                        <h4 className="font-medium text-gray-900">Delete Account</h4>
+                                        <p className="text-sm text-muted-foreground">
+                                            Permanently delete your account and all of your data from our servers. This action cannot be undone.
+                                        </p>
+                                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                            <p className="text-sm text-red-800">
+                                                <strong>Warning:</strong> This will delete all your candidates, job postings, interviews, and account data permanently.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Button 
+                                        variant="destructive" 
+                                        onClick={handleDeleteAccountClick}
+                                        disabled={isLoadingAccountData}
+                                    >
+                                        {isLoadingAccountData && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete Account
+                                    </Button>
                                 </CardContent>
                             </Card>
                         </TabsContent>
                     </div>
                 </div>
             </Tabs>
+
+            {/* Delete Account Dialog */}
+            <DeleteAccountDialog
+                isOpen={showDeleteDialog}
+                onClose={() => setShowDeleteDialog(false)}
+                onConfirm={handleDeleteAccountConfirm}
+                accountData={accountData}
+            />
         </div>
     );
 }

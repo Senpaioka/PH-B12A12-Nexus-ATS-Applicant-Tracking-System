@@ -335,16 +335,6 @@ npm run cleanup-tokens
 - Update documentation for new features
 - Ensure all tests pass before submitting PR
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the GitHub repository
-- Check the documentation and FAQ
-- Review the API documentation
 
 ## 🙏 Acknowledgments
 
