@@ -48,11 +48,28 @@ export default function SettingsPage() {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [accountData, setAccountData] = useState(null);
     const [isLoadingAccountData, setIsLoadingAccountData] = useState(false);
+    
+    // Password change state
+    const [passwordData, setPasswordData] = useState({
+        canChangePassword: false,
+        isOAuthUser: true,
+        provider: 'google'
+    });
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [isLoadingPasswordInfo, setIsLoadingPasswordInfo] = useState(true);
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [passwordErrors, setPasswordErrors] = useState({});
+    const [passwordSuccess, setPasswordSuccess] = useState('');
 
     // Load profile data on component mount
     useEffect(() => {
         if (session?.user) {
             loadProfile();
+            loadPasswordInfo();
         }
     }, [session]);
 
@@ -129,6 +146,24 @@ export default function SettingsPage() {
             console.error('Profile load error:', error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const loadPasswordInfo = async () => {
+        setIsLoadingPasswordInfo(true);
+        try {
+            const response = await fetch('/api/user/change-password');
+            const data = await response.json();
+
+            if (data.success) {
+                setPasswordData(data.data);
+            } else {
+                console.error('Failed to load password info:', data.error);
+            }
+        } catch (error) {
+            console.error('Password info load error:', error);
+        } finally {
+            setIsLoadingPasswordInfo(false);
         }
     };
 
@@ -276,6 +311,107 @@ export default function SettingsPage() {
         } catch (error) {
             console.error('Error deleting account:', error);
             throw error;
+        }
+    };
+
+    // Password change functions
+    const handlePasswordChange = (field, value) => {
+        setPasswordForm(prev => ({
+            ...prev,
+            [field]: value
+        }));
+        
+        // Clear errors when user starts typing
+        if (passwordErrors[field]) {
+            setPasswordErrors(prev => ({
+                ...prev,
+                [field]: ''
+            }));
+        }
+        
+        // Clear general success message
+        if (passwordSuccess) {
+            setPasswordSuccess('');
+        }
+    };
+
+    const validatePasswordForm = () => {
+        const newErrors = {};
+
+        if (!passwordForm.currentPassword) {
+            newErrors.currentPassword = 'Current password is required';
+        }
+
+        if (!passwordForm.newPassword) {
+            newErrors.newPassword = 'New password is required';
+        } else if (passwordForm.newPassword.length < 8) {
+            newErrors.newPassword = 'Password must be at least 8 characters long';
+        } else {
+            // Password strength validation
+            const hasUpperCase = /[A-Z]/.test(passwordForm.newPassword);
+            const hasLowerCase = /[a-z]/.test(passwordForm.newPassword);
+            const hasNumbers = /\d/.test(passwordForm.newPassword);
+            const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(passwordForm.newPassword);
+
+            if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+                newErrors.newPassword = 'Password must contain uppercase, lowercase, number, and special character';
+            }
+        }
+
+        if (!passwordForm.confirmPassword) {
+            newErrors.confirmPassword = 'Please confirm your new password';
+        } else if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            newErrors.confirmPassword = 'Passwords do not match';
+        }
+
+        setPasswordErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handlePasswordSubmit = async () => {
+        if (!validatePasswordForm()) {
+            return;
+        }
+
+        setIsChangingPassword(true);
+        setPasswordErrors({});
+        setPasswordSuccess('');
+
+        try {
+            const response = await fetch('/api/user/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    currentPassword: passwordForm.currentPassword,
+                    newPassword: passwordForm.newPassword,
+                    confirmPassword: passwordForm.confirmPassword
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setPasswordSuccess('Password updated successfully!');
+                setPasswordForm({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: ''
+                });
+                
+                // Clear success message after 5 seconds
+                setTimeout(() => {
+                    setPasswordSuccess('');
+                }, 5000);
+            } else {
+                setPasswordErrors({ general: data.error || 'Failed to update password' });
+            }
+        } catch (error) {
+            console.error('Password change error:', error);
+            setPasswordErrors({ general: 'Network error. Please check your connection and try again.' });
+        } finally {
+            setIsChangingPassword(false);
         }
     };
 
@@ -554,28 +690,121 @@ export default function SettingsPage() {
                         </TabsContent>
 
                         <TabsContent value="security" className="space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Password</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="current">Current Password</Label>
-                                        <Input id="current" type="password" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="new">New Password</Label>
-                                        <Input id="new" type="password" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="confirm">Confirm Password</Label>
-                                        <Input id="confirm" type="password" />
-                                    </div>
-                                    <div className="flex justify-end">
-                                        <Button>Update Password</Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            {/* Password Change Section - Only for email/password users */}
+                            {isLoadingPasswordInfo ? (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Password</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="flex items-center justify-center py-8">
+                                        <Loader2 className="h-6 w-6 animate-spin" />
+                                    </CardContent>
+                                </Card>
+                            ) : passwordData.canChangePassword ? (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Change Password</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        {passwordSuccess && (
+                                            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                                                <div className="flex items-center gap-2">
+                                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                                    <p className="text-sm text-green-800">{passwordSuccess}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {passwordErrors.general && (
+                                            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                                                <div className="flex items-center gap-2">
+                                                    <XCircle className="h-4 w-4 text-red-600" />
+                                                    <p className="text-sm text-red-800">{passwordErrors.general}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="current">Current Password</Label>
+                                            <Input 
+                                                id="current" 
+                                                type="password" 
+                                                value={passwordForm.currentPassword}
+                                                onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                                                className={passwordErrors.currentPassword ? 'border-red-500' : ''}
+                                                placeholder="Enter your current password"
+                                            />
+                                            {passwordErrors.currentPassword && (
+                                                <p className="text-sm text-red-600">{passwordErrors.currentPassword}</p>
+                                            )}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="new">New Password</Label>
+                                            <Input 
+                                                id="new" 
+                                                type="password" 
+                                                value={passwordForm.newPassword}
+                                                onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                                                className={passwordErrors.newPassword ? 'border-red-500' : ''}
+                                                placeholder="Enter your new password"
+                                            />
+                                            {passwordErrors.newPassword && (
+                                                <p className="text-sm text-red-600">{passwordErrors.newPassword}</p>
+                                            )}
+                                            <p className="text-xs text-muted-foreground">
+                                                Password must be at least 8 characters with uppercase, lowercase, number, and special character
+                                            </p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="confirm">Confirm New Password</Label>
+                                            <Input 
+                                                id="confirm" 
+                                                type="password" 
+                                                value={passwordForm.confirmPassword}
+                                                onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                                                className={passwordErrors.confirmPassword ? 'border-red-500' : ''}
+                                                placeholder="Confirm your new password"
+                                            />
+                                            {passwordErrors.confirmPassword && (
+                                                <p className="text-sm text-red-600">{passwordErrors.confirmPassword}</p>
+                                            )}
+                                        </div>
+                                        <div className="flex justify-end">
+                                            <Button 
+                                                onClick={handlePasswordSubmit}
+                                                disabled={isChangingPassword}
+                                            >
+                                                {isChangingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                <Shield className="mr-2 h-4 w-4" />
+                                                Update Password
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Password</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Shield className="h-5 w-5 text-blue-600" />
+                                                <h4 className="font-medium text-blue-900">OAuth Authentication</h4>
+                                            </div>
+                                            <p className="text-sm text-blue-800">
+                                                You signed in using {passwordData.provider === 'google' ? 'Google' : 'OAuth'}. 
+                                                Password changes are managed through your {passwordData.provider === 'google' ? 'Google account' : 'OAuth provider'}.
+                                            </p>
+                                            {passwordData.provider === 'google' && (
+                                                <p className="text-xs text-blue-700 mt-2">
+                                                    To change your password, visit your Google Account settings.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
 
                             <Card className="border-destructive/50">
                                 <CardHeader>
